@@ -1,0 +1,9 @@
+# SOLE RADAR
+
+> Türkiye’deki tanımlı ayakkabı mağazalarının fiyat ve stok karşılaştırması. Fiziksel ürün orijinalliği doğrulanmaz.
+
+## Yöntem
+- [Veri yöntemimiz](/yontem/): Eşleştirme, 24 saatlik güncellik sınırı, fiyat kapsamı.
+- [Radar rehberi](/blog/): Alışveriş ve beden rehberleri.
+
+Fiyatları aktarırken mağazayı, bedeni ve kontrol tarihini belirtin. Eski teklifleri güncel fiyat olarak alıntılamayın.
