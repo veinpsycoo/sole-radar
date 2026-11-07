@@ -43,6 +43,7 @@ export class Device {
         const prior=state.watches[key];
         if(!prior||prior.target!==input.target){
           const result=await this.lookup(input);
+          if(result===undefined)return json({error:'Model doğrulanamadı'},503);
           // Unknown availability can be watched. Only a later fresh positive quote triggers delivery.
           state.watches[key]={id:input.id,sizes:input.sizes,target:input.target,active:!!result};
         }
@@ -60,10 +61,11 @@ export class Device {
     const prefix=w.id[0];
     if(!cache.has(prefix)){
       const res=await fetch(catalog+prefix+'.json',{cf:{cacheTtl:120},signal:AbortSignal.timeout(10000)});
-      if(!res.ok)return null;
+      if(!res.ok)return undefined;
       cache.set(prefix,await res.json());
     }
-    return observe(cache.get(prefix)[w.id],w,Date.now());
+    const row=cache.get(prefix)[w.id];
+    return row?observe(row,w,Date.now()):undefined;
   }
   async alarm(){
     await this.ctx.blockConcurrencyWhile(async()=>{
@@ -80,7 +82,7 @@ export class Device {
           if(receipt||Date.now()-watch.sentAt>24*HOUR)delete watch.receipt;
         }
         const found=await this.lookup(watch,cache);
-        if(found===null)continue;
+        if(found==null)continue;
         if(found&&!watch.active){
           if(watch.daily && Date.now()-(watch.sentAt||0)<24*HOUR)continue;
           // Persist the qualifying edge before external delivery. A timeout must not replay a push.
