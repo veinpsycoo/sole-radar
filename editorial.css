@@ -23,3 +23,22 @@ footer{display:block;max-width:1320px;padding:32px 48px;margin-top:40px;border-c
 .studio-label{display:none}
 @media(max-width:760px){.shoe-scene{top:28%;height:40%;width:100%;transform:translateX(-50%) rotate(-14deg)}#hero-shoe{transform:translateY(-10%)}.hero-model-note{top:26%}}
 @media(max-width:760px){header nav a:last-child{display:none}}
+
+/* The homepage starts with the only buying decisions: size and brand. */
+.size-first #catalog{padding-top:32px}
+.size-first .catalog-heading{margin-bottom:24px}
+.size-first h1{font-size:clamp(30px,4vw,48px);line-height:1.12;letter-spacing:-1.6px;margin:8px 0 14px}
+.size-first h1 span{color:var(--muted)}
+.size-first .catalog-heading p:last-child,.size-first .filter-help{font-size:13px;color:#b5b5bf;line-height:1.6}
+.size-first .filters{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:16px;align-items:end;margin-bottom:10px}
+.size-first .filters select{min-height:48px;width:100%;font-size:16px}
+.size-first .filters .text-button{grid-column:auto;min-height:48px;padding:0 12px}
+.size-first #result-count{font-size:13px;margin:24px 0 16px;color:#c8c8d0}
+.size-first .catalog-summary{max-width:1320px;margin:40px auto;padding:0 48px}
+.size-first .catalog-summary .summary{display:flex;align-items:center;flex-wrap:wrap;gap:16px 28px}
+.size-first .catalog-summary .summary-top{display:none}
+.size-first .catalog-summary .stat{padding:0;border:0;display:flex;align-items:baseline;gap:10px}
+.size-first .catalog-summary .stat strong{font-size:24px}
+.size-first .catalog-summary .summary p{margin:0}
+.size-first .source-chip{cursor:default}
+@media(max-width:760px){.size-first #catalog{padding-top:24px}.size-first .filters{grid-template-columns:1fr 1fr;padding:14px;gap:12px}.size-first .filters label:nth-child(3){grid-column:1/-1}.size-first .filters .text-button{grid-column:1/-1;min-height:32px}.size-first .catalog-summary{padding:0 20px}.size-first .catalog-heading{margin-bottom:20px}.size-first .filter-help{font-size:12px}}
