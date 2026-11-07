@@ -1,0 +1,1 @@
+{"name":"orcinal-go","compatibility_date":"2026-10-01","assets":{"directory":"./public","binding":"ASSETS","run_worker_first":true},"main":"worker.mjs","workers_dev":true}

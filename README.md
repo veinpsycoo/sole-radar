@@ -1,4 +1,4 @@
-# SOLE RADAR mobile
+# Orcinal mobil
 
 Expo SDK 58 / React Native 0.88 / Expo Router. iOS öncelikli; Android aynı kaynağı kullanır.
 
@@ -14,11 +14,23 @@ Expo SDK 58 / React Native 0.88 / Expo Router. iOS öncelikli; Android aynı kay
 - 390 px tarayıcı kontrolü: üç tik, dördüncü seçimi engelleme, 46 temiz seçenek, marka ve detayda numaralar; yatay taşma veya konsol hatası yok.
 - Web kontrolü fiziksel iPhone veya VoiceOver testi değildir. İmzalı IPA/TestFlight/App Store yayını henüz yok.
 
+## Telefonda deneme
+
+[Expo Go önizlemesi ve imzalı Android test sürümü](https://orcinal-go.aikolejim.workers.dev/). Expo Go içinde Hesabım web profilini açar. Kurulu Android sürümü cihazın Google girişini kullanır. Numara ve favoriler aynı kullanıcı hesabına bağlıdır.
+
+Önizlemeyi yenilemek için Orcinal Expo hesabında oturum açıkken mobil dizininde çalıştır.
+
+```sh
+npx expo export --no-bytecode --platform all --output-dir dist
+node preview/pack.cjs dist
+npx wrangler deploy --config preview/wrangler.jsonc
+```
+
+Paketleyici iki platformun imzasını doğrular ve sertifikanın son tarihini gösterir. Mevcut önizleme sertifikası 7 Aralık 2026 00.54 TSİ’de doluyor. Yayına yeni geliştirme sertifikasıyla tekrar paketleyerek devam edilir.
+
 ## Hesap ve mağaza adımları
-Expo CLI cihaz girişi başlatıldı; sahibin giriş onayı bekleniyor. Apple Developer hesabı hazır olduğu bildirildi, ekip ve imzalama erişimi doğrulanmadı.
-Girişten sonra sahibi altında EAS projesini bağla, com.soleradar.app uygunluğunu kontrol et, production profiliyle imzalı iOS build al.
-TestFlight cihaz testi, gerçek ekran görüntüleri, App Store gizlilik cevapları ve inceleme tamamlanmadan mağaza yayını tamamlandı denmez.
-store-listing.tr.json metin taslağıdır; Muhammet Çay ve veinpsyco@gmail.com kullanıcı tarafından sağlandı.
+
+EAS projesi bağlıdır. İmzalı Android test sürümü ve iOS simülatör sürümü üretildi. Apple üyeliği, Apple ile giriş sağlayıcısı, dağıtım imzası, fiziksel cihaz ve TestFlight adımları açık. Play App Signing kullanıldığında Google Play’in uygulama imza sertifikasını Firebase Android kaydına ekle. Ayrıntılar [mağaza hazırlık kaydında](https://github.com/veinpsycoo/sole-radar/blob/source/ORCINAL-YAYIN.md).
 
 ## Yerel doğrulama
 npm run typecheck
@@ -26,5 +38,3 @@ npx expo lint app lib --max-warnings 0
 node --experimental-strip-types lib/catalog.test.mjs
 npx expo-doctor
 npx expo export --platform ios --output-dir dist-ios
-
-Bulut build planını ve kota durumunu EAS projesi bağlandıktan sonra kontrol et; başarısız buildleri körlemesine tekrarlama.

@@ -1,3 +1,4 @@
+import {isRunningInExpoGo} from 'expo';
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, AppState, Linking, FlatList, Image, Platform, Pressable, ScrollView, Text, TextInput, View} from 'react-native';
 import {Link, router, useLocalSearchParams} from 'expo-router';
@@ -36,7 +37,7 @@ function Ranking({initialSizes}:{initialSizes:string[]}) {
   const same=(x:Saved)=>x.brand===brand&&x.query===query&&x.total===total&&String(x.sizes)===String(sizes);
   const prior=saved.find(same)?.leader;
   return <>
-    <Stack.Screen options={{headerLargeTitle:false,headerTitle:()=> <Image accessibilityLabel="Orcinal" resizeMode="contain" source={require('../assets/orcinal-wordmark.png')} style={{width:110,height:32}}/>,headerRight:()=> <Link href="/hesabim" style={s.navLink}>Hesabım</Link>}}/>
+    <Stack.Screen options={{headerLargeTitle:false,headerTitle:()=> <Image accessibilityLabel="Orcinal" resizeMode="contain" source={require('../assets/orcinal-wordmark.png')} style={{width:110,height:32}}/>,headerRight:()=> <Link href="/hesabim" style={[s.navLink,Platform.OS==='android'&&isRunningInExpoGo()&&{marginRight:38}]}>Hesabım</Link>}}/>
     {Platform.OS === 'ios' && <Stack.SearchBar placeholder="Model, marka veya kod ara" onChangeText={e=>setQuery(e.nativeEvent.text)}/>}
     <FlatList data={rows} keyExtractor={r=>r.key} contentInsetAdjustmentBehavior="automatic" contentContainerStyle={s.list} keyboardShouldPersistTaps="handled" refreshing={loading} onRefresh={refresh} initialNumToRender={10} windowSize={5}
       ListHeaderComponent={<View>
