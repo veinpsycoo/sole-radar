@@ -159,7 +159,7 @@ OPEN_SHOE = re.compile(r'\b(?:sandal(?:et)?(?:s|ler\w*|i)?|terli[kğ]\w*|slides?
 
 
 def open_shoe(text):
-    return bool(OPEN_SHOE.search(str(text).replace('_', ' ')))
+    return bool(OPEN_SHOE.search(str(text).replace('_', ' ')) or re.search(r'sandalet|terli[kğg]', str(text), re.I))
 
 
 def featured_catalog(data):
@@ -167,6 +167,11 @@ def featured_catalog(data):
     for p in data['products']:
         brand = p['brand'].replace('İ', 'I')
         if brand not in FEATURED_BRANDS or open_shoe(p['name']):
+            continue
+        # Some retailers label these slipper lines only by their model names.
+        if brand == 'UGG' and re.search(r'\b(?:tasman|tazz)\b', p['name'], re.I):
+            continue
+        if brand == 'MERRELL' and re.search(r'\bhydro[ -]moc\b(?![ -]at\b)', p['name'], re.I):
             continue
         offers = [o for o in p['offers'] if not open_shoe(urlsplit(o['url']).path)]
         if offers:
