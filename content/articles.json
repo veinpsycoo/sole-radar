@@ -1,0 +1,47 @@
+[
+  {
+    "slug": "ayakkabi-fiyati-nasil-karsilastirilir",
+    "title": "Ayakkabı fiyatı karşılaştırırken aynı ürüne baktığından emin ol",
+    "description": "Model kodu, renk, beden ve son kontrol tarihi: iki ayakkabı teklifini karşılaştırmadan önce kontrol etmen gerekenler.",
+    "date": "2026-11-06",
+    "category": "Alışveriş rehberi",
+    "intro": "İki teklifin gerçekten karşılaştırılabilir olması için modelin, rengin ve seçtiğin bedenin aynı olması gerekir. Arama sonucundaki en düşük fiyat, senin bedenindeki fiyat olmayabilir. SOLE RADAR'da önce bedenini seç, sonra teklifler arasındaki farkı incele.",
+    "sections": [
+      {"title": "Model adı tek başına yeterli değil", "text": "Bir model ailesinin adı birçok renk ve sürümde kullanılabilir. Ürün kodunu mağazanın ürün sayfasında kontrol et. Kodun yalnızca model ailesini gösteren kısmı aynıysa renk eşleşmesi hâlâ belirsiz olabilir. SOLE RADAR tanıdığı tam ürün kodlarını eşleştirir; kodu kesinleştiremediği kayıtları ayrı tutar. Bu yüzden aynı ayakkabıyı bazen iki ayrı sonuçta görebilirsin. Belirsiz kayıtları birleştirerek yanıltıcı bir fiyat farkı üretmek yerine bu ayrımı koruyoruz."},
+      {"title": "Fiyatı bedeninle birlikte karşılaştır", "text": "Beden filtresini seçtiğinde sonuçlar, stokta görünen ve o bedene ait fiyatı bulunan tekliflerle daralır. Beden doğrulanmamışsa teklif bu filtreye dahil edilmez. Beden seçmeden gördüğün başlayan fiyat, ürünün mevcut varyantları arasındaki en düşük tutardır. Satın almadan önce mağazada beden seçimini tekrar yap; stok bilgisi tarama ile ödeme arasındaki sürede değişebilir."},
+      {"title": "Son tutarı mağazada kontrol et", "text": "Katalog fiyatları kargoyu ve koşullu sepet kampanyalarını içermez. Kargo, üyelik, kupon veya sepet şartı toplamı değiştirebilir. Son kararını mağazanın ödeme öncesi gösterdiği toplam üzerinden ver. Yalnızca listelenen mağazaları karşılaştırıyoruz; internetteki her satıcıyı taradığımızı veya mutlak en düşük fiyatı bulduğumuzu söylemiyoruz."},
+      {"title": "Kontrol tarihini gözden kaçırma", "text": "Her teklifin kontrol zamanı görünür. Son kontrolünün üzerinden 24 saat geçen teklifler aktif sonuçlardan çıkarılır. Bir mağazanın taraması başarısız olduğunda o kaynaktaki teklifler de karşılaştırmaya dahil edilmez. Kısmi tarama ise mağazanın bütün ürünlerinin okunamadığını belirtir. Bu bilgileri sonuçların yanında ve Mağaza ağı bölümünde görebilirsin."}
+    ],
+    "links": [{"label":"Fiyat ve eşleştirme yöntemimiz","url":"/yontem/"},{"label":"Modelleri incele","url":"/modeller/"}]
+  },
+  {
+    "slug": "ayakkabi-beden-filtresi",
+    "title": "Ayakkabı beden filtresi nasıl çalışır?",
+    "description": "Stok, ölçü sistemi ve bedene özel fiyat arasındaki farkı öğren. Beden filtresinin hangi teklifleri gösterdiğini incele.",
+    "date": "2026-11-06",
+    "category": "Beden ve stok",
+    "intro": "SOLE RADAR'ın beden filtresi mağazanın verdiği beden etiketini kullanır. Bir mağazanın 42 etiketi ile başka bir ölçü sistemindeki 42 etiketinin aynı kalıp olduğunu varsaymaz. Beden filtresi stok ve fiyat bulmayı kolaylaştırır; ayağına uygunluğu garanti etmez.",
+    "sections": [
+      {"title": "Mağazanın ölçü tablosunu kullan", "text": "Ürün sayfasında bedenin EU, US veya UK olarak mı belirtildiğine bak. Markanın ilgili ürün grubu için yayımladığı ölçü tablosunu kontrol et. Kadın, erkek ve çocuk ürünlerinde aynı rakamı görmek tek başına eşdeğer ölçü anlamına gelmez. Biz mağazanın beden yazımını koruyor, ölçü sistemleri arasında tahmini dönüşüm yapmıyoruz."},
+      {"title": "Beden seçince fiyat neden değişebilir?", "text": "Bir ürünün varyantlarında farklı fiyatlar bulunabilir. Beden seçilmediğinde mevcut varyantların en düşük fiyatı gösterilir. Beden seçildiğinde yalnızca o etikete sahip stoklu varyantlar kalır ve fiyat yeniden hesaplanır. Bu nedenle filtreden sonra fiyatın yükselmesi her zaman bir hata anlamına gelmez. Teklifler ve bedenler bölümünü açarak kaynağın bildirdiği seçenekleri karşılaştırabilirsin."},
+      {"title": "Bir mağaza neden sonuçtan kaybolur?", "text": "Seçtiğin beden stokta görünmüyorsa, beden verisi alınamamışsa veya teklif güncellik sınırını aşmışsa mağazanın teklifi filtreli sonuçtan çıkar. Beden bilgisi bilinmiyor olması, o bedenin kesinlikle tükendiği anlamına gelmez. Bu durumda mağazanın kendi sayfasını kontrol et. SOLE RADAR hiçbir ürünü senin için rezerve etmez."},
+      {"title": "Ödemeden önce son kontrol", "text": "Mağazaya geçtiğinde ürün kodunu, renk seçimini ve bedeni yeniden kontrol et. Ürün sayfasındaki ölçü tablosunu ve iade koşullarını oku. Buradaki rehber kişisel kalıp tavsiyesi veya ürün deneme sonucu içermez; model bazında fiziksel deneyimimiz varmış gibi değerlendirme yapmıyoruz."}
+    ],
+    "links": [{"label":"Mağaza verilerini nasıl okuyoruz?","url":"/yontem/"},{"label":"Beden seçerek ara","url":"/#catalog"}]
+  },
+  {
+    "slug": "new-balance-9060-fiyat-karsilastirma",
+    "title": "New Balance 9060 ararken renk ve ürün kodunu birlikte kontrol et",
+    "description": "9060 tekliflerini renk, ürün kodu ve beden üzerinden karşılaştır. Vitrindeki görsel ile mağaza teklifinin aynı ürün olup olmadığını kontrol et.",
+    "date": "2026-11-06",
+    "category": "Model rehberi",
+    "intro": "New Balance 9060 bir model ailesidir. Fiyat karşılaştırmasında yalnızca 9060 adına bakmak yeterli olmaz: renk, tam ürün kodu ve beden de eşleşmelidir. Ana sayfamızdaki Grey Jet Black görseli bir vitrin seçimidir; bu rengin en ucuz veya en çok satan seçenek olduğu iddiası değildir.",
+    "sections": [
+      {"title": "Aramaya 9060 ile başla", "text": "Arama kutusuna 9060 yazıp sonuçları incele. Bir ürünün rengini beğendiğinde kodunu aç ve diğer tekliflerde de aynı kodu ara. Fotoğraftaki tonlar çekim ışığı ve ekran ayarlarına göre farklı görünebilir; karşılaştırmayı yalnızca görsel benzerliğe dayandırma. Ürün adı ve kodu uyuşmuyorsa satın almadan önce mağazadan doğrulama iste."},
+      {"title": "Aynı renk için bedenini seç", "text": "İlgilendiğin modelin tüm bedenleri aynı mağazada bulunmayabilir. Beden filtresi seçili olduğunda karşılaştırma o bedendeki stoklu teklifler üzerinden yapılır. Mağazanın ölçü sistemini ve New Balance ürün sayfasındaki beden tablosunu ayrıca kontrol et. Bu yazı bir giyim denemesi değildir ve herkese tek bir beden önermez."},
+      {"title": "Teklifin kapsamını oku", "text": "SOLE RADAR'ın gösterdiği tutar son taramada okunan ürün fiyatıdır. Kargo ve koşullu kampanyalar son toplamı değiştirebilir. Mağazada seçtiğin renk, beden ve sepet toplamını kontrol et. Kaynak sayısı ve tarama kapsamı sınırlıdır; sonuçlarda bir renk bulunmaması o rengin hiçbir yerde satılmadığı anlamına gelmez."},
+      {"title": "Orijinallik konusunda neyi doğruluyoruz?", "text": "Veriyi tanımlı mağaza adreslerinden okuyor ve bağlantıyı o mağazaya veriyoruz. Fiziksel ürünü incelemiyoruz; fotoğraftan veya ürün kodundan kesin orijinallik belgesi üretmiyoruz. Satıcı kimliği, fatura, ürün bilgisi ve mağazanın koşullarını satın almadan önce kontrol et. Site üzerindeki arama sloganı bir ürün doğrulama sertifikası değildir."}
+    ],
+    "links": [{"label":"9060 modellerini ara","url":"/?q=9060#catalog"},{"label":"New Balance Türkiye 9060 koleksiyonu","url":"https://www.newbalance.com.tr/new-balance-9060"},{"label":"Karşılaştırma yöntemimiz","url":"/yontem/"}]
+  }
+]

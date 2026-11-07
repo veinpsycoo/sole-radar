@@ -1,0 +1,15 @@
+__pycache__/
+data/
+*.log
+preview/
+mobile/node_modules/
+mobile/dist*/
+mobile/.expo/
+.env*
+node_modules/
+third_party/
+gh-pages-out/
+web/vendor/nb9060-*
+web/vendor/*.glb
+web/vendor/*.hdr
+.vercel/
