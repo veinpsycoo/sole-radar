@@ -24,11 +24,24 @@ def embed(p):
         canvas=Image.new('RGB',(224,224),'white')
         im=ImageOps.contain(im,(224,224))
         canvas.paste(im,((224-im.width)//2,(224-im.height)//2),im)
+        pixels=np.asarray(canvas)
+        background=np.median([pixels[y,x] for y in (0,223) for x in (0,223)],axis=0)
+        mask=np.max(np.abs(pixels-background),axis=2)>24
+        ys,xs=np.where(mask)
+        if len(xs)>100:
+            x0,x1=int(xs.min()),int(xs.max())+1
+            y0,y1=int(ys.min()),int(ys.max())+1
+            crop=ImageOps.contain(canvas.crop((x0,y0,x1,y1)),(210,210))
+            canvas=Image.new('RGB',(224,224),'white')
+            canvas.paste(crop,((224-crop.width)//2,(224-crop.height)//2))
+        foreground=pixels[mask].astype('int32')//64
+        bins=np.bincount(foreground@np.array([16,4,1]),minlength=64)
+        color=np.round(255*np.sqrt(bins/max(1,bins.sum()))).astype('uint8')
         rgb=np.asarray(canvas).astype('float32')/255
         x=((rgb-[.485,.456,.406])/[.229,.224,.225]).astype('float32').transpose(2,0,1)[None]
         vec=session.run(None,{'data':x})[0].flatten()
         feature=np.round(vec/max(float(abs(vec).max()),1e-9)*127).astype('int8')
-        return {k:p[k] for k in ('id','name','brand','image','code')}|{'v':base64.b64encode(feature).decode()}
+        return {k:p[k] for k in ('id','name','brand','image','code')}|{'v':base64.b64encode(feature).decode(),'h':base64.b64encode(color).decode()}
     except (OSError,ValueError):
         return None
 

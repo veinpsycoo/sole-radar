@@ -154,7 +154,7 @@ def resolve(path, query=''):
         file = CATALOG.parent / path.lstrip('/')
         return (200, file.read_text(encoding='utf-8'), 'application/json') if file.is_file() else (404, '{}', 'application/json')
     if path == '/foto/':
-        body = '<h1>Fotoğrafla model bul</h1><p class="lead">Tek ayakkabının yandan çekilmiş fotoğrafını seç. Pilot katalogdaki benzer modelleri cihazında karşılaştırır. Fotoğrafın yüklenmez.</p><label>Ayakkabı fotoğrafı <input id="photo" type="file" accept="image/jpeg,image/png,image/webp"></label><p id="photo-status" role="status"></p><ul id="photo-results"></ul><script defer src="/vendor/vision/ort.wasm.min.js"></script><script defer src="/vendor/vision/photo.js"></script>'
+        body = '<h1>Fotoğrafla model bul</h1><p class="lead">Tek ayakkabının yandan çekilmiş fotoğrafını seç. Pilot katalogdaki benzer modelleri cihazında karşılaştırır. Fotoğrafın yüklenmez.</p><label>Ayakkabı fotoğrafı <input id="photo" type="file" accept="image/jpeg,image/png,image/webp"></label><p id="photo-status" role="status"></p><ul id="photo-results"></ul><script defer src="/vendor/vision/ort.wasm.min.js"></script><script defer src="/vendor/vision/photo.js?v=2"></script>'
         return 200, page('Fotoğrafla sneaker modeli bul', 'Fotoğrafına benzeyen sneaker modellerini keşfet.', path, body), HTML
     if path == '/takvim/':
         from releases import URL
