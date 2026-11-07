@@ -30,6 +30,27 @@ jobs:
         run: |
           mkdir -p source/data
           cp published/api/catalog.json source/data/catalog.json
+          # A design-only push must preserve the newer catalog from scheduled scans.
+          python - <<'PY'
+          import json
+          from datetime import datetime
+          from pathlib import Path
+          from urllib.request import urlopen
+          path = Path("source/data/catalog.json")
+          stored = json.loads(path.read_bytes())
+          try:
+              with urlopen("https://veinpsycoo.github.io/sole-radar/api/catalog.json", timeout=30) as response:
+                  raw = response.read(64 * 1024 * 1024 + 1)
+              if len(raw) > 64 * 1024 * 1024:
+                  raise ValueError("unexpected catalog size")
+              live = json.loads(raw)
+              if (live["products"] and len(live["sources"]) == len(stored["sources"])
+                      and datetime.fromisoformat(live["generatedAt"]) > datetime.fromisoformat(stored["generatedAt"])):
+                  path.write_bytes(raw)
+                  print("Using the newer public catalog", live["generatedAt"])
+          except (OSError, ValueError, KeyError, TypeError) as error:
+              print("Using the repository catalog", type(error).__name__)
+          PY
       - uses: actions/cache/restore@v4
         with:
           path: source/data/radar
