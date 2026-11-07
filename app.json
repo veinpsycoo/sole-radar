@@ -31,6 +31,12 @@
       "expo-secure-store",
       "expo-notifications"
     ],
-    "scheme": "soleradar"
+    "scheme": "soleradar",
+    "extra": {
+      "eas": {
+        "projectId": "c3ffc14a-3586-4168-a45c-453c5857122d"
+      }
+    },
+    "owner": "veinpsyco"
   }
 }
