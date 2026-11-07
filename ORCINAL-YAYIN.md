@@ -38,3 +38,10 @@ Bunlar iş için ayrılan süre dilimleridir. Mağaza onayı veya test süresi t
 - Web önizlemesinde mobil genişlikte gerçek Google hesap seçicisine geçiş. Yerel Google giriş simülasyonunda profil adı, iki beden, favori kaydı, sayfa yenileme, favoriden kaldırma, tekrar kimlik doğrulama ve hesap silme.
 - Erişim testinde başka kullanıcı ve ziyaretçi için okuma, yazma ve silme reddedildi. Genel profil listelemesi, beklenmeyen alan ve liste sınırı aşımı reddedildi. Testi çalıştırmak için Firebase Emulator Suite ile `firebase emulators:exec --project demo-orcinal-release --only auth,firestore "node test_profile.mjs"` kullanılabilir.
 - Üretim cihazı ve sağlayıcı izinleri gerektiren maddeler açık. Mağazalara başvuru yapılmadı.
+
+## Telefona teslim edilen test sürümleri
+
+- [Telefonda aç](https://orcinal-go.aikolejim.workers.dev/) sayfasındaki iPhone ve Android bağlantıları Expo Go içindir. İmzalar, uygulama dosyaları ve Android’de ana sayfa ile Hesabım ekranı doğrulandı. Bu önizlemenin mevcut imzası 7 Aralık 2026 saat 00.54 TSİ’ye kadar geçerli.
+- [İmzalı Android test sürümü](https://expo.dev/artifacts/eas/DvZuj5igE0aG_jsZjVqWSdur0FAehirFVTXyexWgTEo.apk) temiz bir Android sanal cihazına kuruldu. Paket sertifikası doğrulandı, Firebase’e kaydedildi ve uygulamadaki düğmeden Google’ın yerel hesap giriş ekranına geçildi. Gerçek kullanıcı hesabıyla oturum, cihazlar arası eşitleme ve bildirimler fiziksel cihaz testinde tamamlanacak.
+- [iOS simülatör derlemesi](https://expo.dev/accounts/veinpsyco/projects/sole-radar/builds/14863ee1-2fce-47ff-9419-c07c8d8c4b30) üretildi. Arşivde Orcinal adı, uygulama ikonu, açılış ekranı ve Google geri dönüş şeması doğrulandı. Firebase Apple sağlayıcısı, Apple üyeliği, dağıtım imzası ve gerçek iPhone testleri açık.
+- Mobil tip kontrolü, lint ve Expo Doctor kontrolleri geçti. Üretim bağımlılıkları taramasında bilinen açık bulunmadı. Expo Go'da Google düğmesi web profilini açar.
