@@ -41,7 +41,7 @@ def main():
                 body = body.replace('<section class="offer-detail">', '<section class="offer-detail" hidden>')
                 body = body.replace('<p class="lead">', '<p class="lead" hidden>')
                 body = body.replace('<form class="detail-size"', '<p id="static-status" role="status">Beden ve güncel stok kontrol ediliyor…</p><form class="detail-size"')
-                body = body.replace('</body>', '<script src="/static-detail.js" defer></script><noscript>Güncel beden ve fiyatlar için JavaScript gerekli. Mağazada kontrol et.</noscript></body>')
+                body = body.replace('</body>', '<script src="/static-detail.js?v=multisize1" defer></script><noscript>Güncel beden ve fiyatlar için JavaScript gerekli. Mağazada kontrol et.</noscript></body>')
                 body = re.sub(r'<script type="application/ld\+json">.*?</script>', '', body)
             write(p, body); n += 1
     active = sum(bool(s.fresh_offers(p, data)) for p in data['products'])
