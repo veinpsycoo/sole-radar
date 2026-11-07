@@ -6,7 +6,8 @@ export type Result = Omit<Product, 'offers'> & {offers: (Offer & {price: number}
 export const emptyCatalog: Catalog = {generatedAt: null, sources: [], products: []};
 const hosts = new Set(['www.vitruta.com', 'www.merrell.com.tr', 'www.newbalance.com.tr', 'www.sneaksup.com', 'www.asics.com.tr', 'www.salomon.com.tr', 'www.spx.com.tr', 'www.converse.com.tr', 'tr.puma.com', 'www.reebok.com.tr', 'www.beymen.com']);
 export const fold = (text: string) => text.toLocaleLowerCase('tr-TR').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ı/g, 'i');
-export const money = (price: number) => new Intl.NumberFormat('tr-TR', {style: 'currency', currency: 'TRY'}).format(price / 100);
+const currency = new Intl.NumberFormat('tr-TR', {style: 'currency', currency: 'TRY'});
+export const money = (price: number) => currency.format(price / 100);
 export function shoeSize(value: string): string {
   const match = value.trim().replace(',', '.').match(/^(\d{2})(?:([.]5)|\s*([⅓⅔]))?$/);
   if (!match || Number(match[1]) < 35 || Number(match[1]) > 50 || (match[1] === '50' && (match[2] || match[3]))) return '';
@@ -29,11 +30,20 @@ export function parseCatalog(raw: unknown): Catalog {
   }
   return data;
 }
+// Keep validation tied to the original URL, including if a catalog consumer edits an offer.
+const retailerLinks = new WeakMap<Offer, {url: string; allowed: boolean}>();
+function isRetailerOffer(offer: Offer) {
+  const cached = retailerLinks.get(offer);
+  if (cached?.url === offer.url) return cached.allowed;
+  const allowed = Boolean(safeUrl(offer.url, true));
+  retailerLinks.set(offer, {url: offer.url, allowed});
+  return allowed;
+}
 export function offersFor(p: Product, data: Catalog, sizes: string[] = [], now = Date.now()): Result['offers'] {
   const sources = new Set(data.sources.filter(s => s.status !== 'error').map(s => s.id));
   return p.offers.flatMap(o => {
     const age = now - Date.parse(o.checkedAt);
-    if (!(age >= -300000 && age < 86400000) || !sources.has(o.sourceId) || !safeUrl(o.url, true)) return [];
+    if (!(age >= -300000 && age < 86400000) || !sources.has(o.sourceId) || !isRetailerOffer(o)) return [];
     const variants = o.variants.filter(v => v.available && (!sizes.length || sizes.includes(shoeSize(v.size))));
     return variants.length ? [{...o, variants, price: Math.min(...variants.map(v => v.price))}] : [];
   }).sort((a,b) => a.price - b.price);
@@ -44,8 +54,10 @@ export function search(data: Catalog, query: string, brand: string, sizes: strin
   const words = fold(query).trim().split(/\s+/).filter(Boolean);
   return data.products.flatMap(p => {
     if (brand && p.brand !== brand) return [];
-    const text = fold([p.name,p.brand,p.code,p.color].join(' '));
-    if (!words.every(w => text.includes(w))) return [];
+    if (words.length) {
+      const text = fold([p.name,p.brand,p.code,p.color].join(' '));
+      if (!words.every(w => text.includes(w))) return [];
+    }
     const offers = offersFor(p, data, selected, now);
     return offers.length ? [{...p, offers, price: offers[0].price}] : [];
   }).sort((a,b) => a.price-b.price);

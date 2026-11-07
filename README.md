@@ -26,7 +26,7 @@ node preview/pack.cjs dist
 npx wrangler deploy --config preview/wrangler.jsonc
 ```
 
-Paketleyici iki platformun imzasını doğrular ve sertifikanın son tarihini gösterir. Mevcut önizleme sertifikası 7 Aralık 2026 00.54 TSİ’de doluyor. Yayına yeni geliştirme sertifikasıyla tekrar paketleyerek devam edilir.
+Paketleyici iki platformun imzasını doğrular ve sertifikanın son tarihini gösterir. Mevcut önizleme sertifikası 7 Aralık 2026’da doluyor. Yayına yeni geliştirme sertifikasıyla tekrar paketleyerek devam edilir.
 
 ## Hesap ve mağaza adımları
 

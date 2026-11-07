@@ -44,7 +44,8 @@ export async function googleLogin(reauth?:authSdk.User) {
   GoogleSignin.configure(clients);
   if (Platform.OS==='android') await GoogleSignin.hasPlayServices({showPlayServicesUpdateDialog:true});
   const response=await GoogleSignin.signIn();
-  if (!isSuccessResponse(response) || !response.data.idToken) throw Error('Giriş iptal edildi.');
+  if (!isSuccessResponse(response)) throw Object.assign(new Error('Giriş iptal edildi.'), {code: 'ERR_REQUEST_CANCELED'});
+  if (!response.data.idToken) throw new Error('Google kimliği doğrulanamadı.');
   const credential=authSdk.GoogleAuthProvider.credential(response.data.idToken);
   return reauth ? authSdk.reauthenticateWithCredential(reauth,credential) : authSdk.signInWithCredential(auth,credential);
 }

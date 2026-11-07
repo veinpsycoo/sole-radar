@@ -1,6 +1,7 @@
 import {money,shoeSize,type Result} from './catalog';
 export const site='https://veinpsycoo.github.io/sole-radar';
 export type Shipping={sourceId:string;threshold:number;fee:number|null;checkedAt:string};
+const names = new Intl.Collator('tr');
 export function board(products:Result[],shipping:Shipping[],total:boolean,now:number){
   const cost=(sourceId:string,price:number)=>{
     if(!total)return price;
@@ -19,5 +20,5 @@ export function board(products:Result[],shipping:Shipping[],total:boolean,now:nu
       if(Number.isFinite(difference)&&difference>0){saving='EU '+size.replace('.',',')+' · ikinci mağazadan '+money(difference)+' ucuz';break;}
     }
     return [{p,o,price:best,sizes,saving,key:p.id+'|'+o.url}];
-  })).sort((a,b)=>a.price-b.price||a.p.name.localeCompare(b.p.name,'tr')||a.key.localeCompare(b.key));
+  })).sort((a,b)=>a.price-b.price||names.compare(a.p.name,b.p.name)||a.key.localeCompare(b.key));
 }
