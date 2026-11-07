@@ -1,4 +1,4 @@
-name: Publish SOLE RADAR
+name: Publish Orcinal
 on:
   push:
     branches: [main]

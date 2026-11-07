@@ -63,7 +63,9 @@ def application(environ, start_response):
             status, body, mime = 503, b'Service temporarily unavailable', 'text/plain'
     hashes = ' '.join("'sha256-" + base64.b64encode(hashlib.sha256(s).digest()).decode() + "'" for s in re.findall(rb'<script type="application/ld\+json">(.*?)</script>', body))
     wasm = "'wasm-unsafe-eval'" if path == '/foto/' else ''
-    headers = [('Content-Type', mime), ('Content-Length', str(len(body))), ('X-Content-Type-Options', 'nosniff'), ('Referrer-Policy', 'no-referrer'), ('Cache-Control', 'public, max-age=86400' if path.startswith('/vendor/') and status == 200 else 'no-store'), ('Content-Security-Policy', f"default-src 'self'; script-src 'self' {wasm} {hashes}; style-src 'self'; img-src 'self' https: blob:; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"), ('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')]
+    account_script = 'https://www.gstatic.com https://apis.google.com' if path == '/hesabim/' else ''
+    account_network = "https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://www.googleapis.com https://www.gstatic.com; frame-src https://orcinal.firebaseapp.com https://accounts.google.com" if path == '/hesabim/' else ''
+    headers = [('Content-Type', mime), ('Content-Length', str(len(body))), ('X-Content-Type-Options', 'nosniff'), ('Referrer-Policy', 'no-referrer'), ('Cache-Control', 'public, max-age=86400' if path.startswith('/vendor/') and status == 200 else 'no-store'), ('Content-Security-Policy', f"default-src 'self'; script-src 'self' {wasm} {hashes} {account_script}; style-src 'self'; img-src 'self' https: blob:; connect-src 'self' {account_network}; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"), ('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')]
     if path.startswith('/api/teklif/'):
         headers += [('Access-Control-Allow-Origin', '*'), ('Vercel-CDN-Cache-Control', 'public, s-maxage=45' if status==200 else 'public, s-maxage=15')]
     if status == 405:

@@ -88,7 +88,7 @@ export class Device {
           // Persist the qualifying edge before external delivery. A timeout must not replay a push.
           watch.active=true;watch.sentAt=Date.now();
           await this.db.put('state',state);
-          const res=await fetch('https://exp.host/--/api/v2/push/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({to:state.token,title:'SOLE RADAR · Takibindeki ayakkabı',body:'EU '+found.size.replace('.',',')+' stokta · '+new Intl.NumberFormat('tr-TR',{style:'currency',currency:'TRY'}).format(found.price/100),data:{id:watch.id,size:found.size},channelId:'radar'})});
+          const res=await fetch('https://exp.host/--/api/v2/push/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({to:state.token,title:'Orcinal · Takibindeki ayakkabı',body:'EU '+found.size.replace('.',',')+' stokta · '+new Intl.NumberFormat('tr-TR',{style:'currency',currency:'TRY'}).format(found.price/100),data:{id:watch.id,size:found.size},channelId:'radar'})});
           if(!res.ok){if(res.status===429){watch.active=false;await this.db.put('state',state);}continue;}
           const ticket=(await res.json()).data;
           if(ticket?.details?.error==='DeviceNotRegistered'){await this.db.deleteAll();await this.db.deleteAlarm();return;}

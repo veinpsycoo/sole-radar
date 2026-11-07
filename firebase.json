@@ -1,0 +1,4 @@
+{
+  "firestore":{"rules":"firestore.rules"},
+  "emulators":{"auth":{"host":"127.0.0.1","port":19119},"firestore":{"host":"127.0.0.1","port":18189},"ui":{"enabled":false}}
+}

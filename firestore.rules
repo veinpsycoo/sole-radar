@@ -1,0 +1,15 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /profiles/{uid} {
+      function owner() { return request.auth != null && request.auth.uid == uid; }
+      allow get, delete: if owner();
+      allow create, update: if owner()
+        && request.resource.data.keys().hasOnly(['sizes', 'favorites'])
+        && request.resource.data.get('sizes', []) is list
+        && request.resource.data.get('sizes', []).size() <= 3
+        && request.resource.data.get('favorites', []) is list
+        && request.resource.data.get('favorites', []).size() <= 80;
+    }
+  }
+}

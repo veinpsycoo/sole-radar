@@ -20,12 +20,13 @@ def build():
         shutil.copy2(CATALOG.parent/'radar/releases.json', destination/'data/radar/releases.json')
     (destination / 'data/catalog.json').write_bytes(snapshot)
     (destination / 'public/catalog.json').write_bytes(snapshot)
+    shutil.copy2(ROOT / 'web/account.html', destination / 'web/account.html')
     files = ['app.js', 'radar.js', 'size-picker.js', 'size-picker.css', 'hero-3d.js', 'motion.js', 'style.css', 'editorial.css', 'pages.css']
     shutil.copy2(ROOT / 'web/index.html', destination / 'web/index.html')
     for name in files:
         shutil.copy2(ROOT / 'web' / name, destination / 'public' / name)
     shutil.copytree(ROOT/'web/vendor/vision', destination/'public/vendor/vision', dirs_exist_ok=True)
-    assets = ['radar.svg', 'social-card.png', 'fonts.css', 'gsap.min.js', 'ScrollTrigger.min.js', 'lenis.min.js', 'lenis.css', 'LENIS-LICENSE.txt']
+    assets = ['orcinal.svg', 'orcinal-account.js', 'orcinal-firebase.json', 'radar.svg', 'social-card.png', 'fonts.css', 'gsap.min.js', 'ScrollTrigger.min.js', 'lenis.min.js', 'lenis.css', 'LENIS-LICENSE.txt']
     assets += [p.name for p in (ROOT / 'web/vendor').glob('*-OFL.txt')]
     assets += [p.name for p in (ROOT / 'web/vendor').glob('*.woff2')]
     assets += [p.name for p in (ROOT / 'web/vendor').glob('*.ttf')]

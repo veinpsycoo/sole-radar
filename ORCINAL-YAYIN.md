@@ -1,0 +1,40 @@
+# Orcinal · Yayına hazırlık, 8 Kasım 2026
+
+## Altı saatlik uygulama planı
+
+Bunlar iş için ayrılan süre dilimleridir. Mağaza onayı veya test süresi tahmini değildir.
+
+| Dilim | İş | Kabul ölçütü |
+|---|---|---|
+| 0–1 saat | Apple, Google Play, Türkiye fiyat karşılaştırma uygulamaları ve sneaker rakipleri | Gereksinimler, kaynaklar ve Orcinal’de karşılığı |
+| 1–2 saat | Ortak hesap ve erişim kontrolü | Google kimliği, kullanıcının yalnız kendi kayıtlarını okuyup silebilmesi |
+| 2–3 saat | Web Hesabım | Google hesap seçimi, profil adı, üç numara, favoriler, hesapsız arama ve silme |
+| 3–4 saat | Mobil Hesabım | Aynı hesap/veri modeli, profil numaralarıyla sıralama, ürün ekranından favori, iOS giriş seçeneği |
+| 4–5 saat | Görsel kimlik | Amblem, konturlu yazı logosu, favicon, iOS ikonu, Android uyarlanabilir ve tek renk ikonları, açılış görseli |
+| 5–6 saat | Yayın provası | Güvenlik kuralları, web giriş penceresi, derleme, erişilebilir mobil ekran, cihaz ve mağaza kontrol listesi |
+
+## Rakiplerden Orcinal’e
+
+| Kaynak | Gözlenen özellik | Orcinal’de karşılığı |
+|---|---|---|
+| [Cimri](https://www.cimri.com/en-son-kaca-olur) | Hesapta favoriler, fiyat alarmı ve fiyat geçmişi | Favori modeller ve numaralar profil hesabına bağlı. Cihaz alarmları profilin ayrı bağlantısından yönetilir. |
+| [RunRepeat](https://www.runrepeat.com/guides/best-cheap-basketball-shoes) | Numara ve renk için mağaza karşılaştırması, fiyat alarmı | Kayıtlı üç numarayla stoklu teklif sıralamasına geçilir. Ürünün beden bazlı geçmişi korunur. |
+| [Akakçe](https://www.akakce.com/) | Birden fazla mağazanın fiyat değişimini izleme | Mevcut sıralamada mağaza, kontrol zamanı ve mağazaya giden doğrudan bağlantı korunur. |
+
+## Gönderim öncesi
+
+- **iOS.** Kullanıcı Google ile birincil hesap açıyorsa Apple 4.8’in gizlilik özelliklerine sahip eşdeğer giriş sunulmalı. Orcinal için Apple ile Giriş seçildi. Apple Developer üyeliği ve takım erişimini doğrula. App ID için yeteneği aç, imzalama profilini yenile, Apple giriş ve iptal anahtarlarını Firebase’e bağla. Dağıtım kaydındaki satıcı adı, kişisel kayıtta işletmecinin yasal adıdır. [Apple inceleme kuralları](https://developer.apple.com/app-store/review/guidelines/) · [Firebase Apple kurulumu](https://firebase.google.com/docs/auth/ios/apple)
+- **Derleme.** App Store yüklemesinde Xcode 26 veya sonrası ve iOS 26 veya sonrası SDK gerekir. iOS SDK, dağıtım hedefi ve fiziksel cihaz sürümü ayrı değerlerdir. Android telefon için güncel Play hedefi en az API 36. Projenin React Native sürümü API 36 hedefi içeriyor. Son IPA/AAB üzerinde yeniden kontrol et. [Apple gereksinimleri](https://developer.apple.com/news/upcoming-requirements/) · [Google hedef API](https://support.google.com/googleplay/android-developer/answer/11926878)
+- **Android giriş.** Yerel test imzası Firebase Android kaydına eklendi. Play Console’daki uygulama imzalama sertifikasını Firebase’e kaydet ve Play üzerinden yüklenmiş sürümle dene. Dahili dağıtım ayrı sertifikayla imzalanırsa onun SHA-1 değerini de kaydet. [Android Google girişi](https://firebase.google.com/docs/auth/android/google-signin)
+- **Google Play testi.** 13 Kasım 2023 sonrasında açılan kişisel hesaplarda üretim erişimine başvurmak için en az 12 testçinin 14 gün kesintisiz kapalı teste katılması gerekir. Geliştirici hesabının türünü ve tarihini Play Console’da kontrol et. [Play kapalı test](https://support.google.com/googleplay/android-developer/answer/14151465)
+- **Hesap silme.** Uygulama içi silme ve dışarıdan erişilen silme yolu hazırlandı. Apple kimliğiyle kullanılan hesapta tekrar giriş, yetki iptali ve silme gerçek cihazda art arda geçmeli. Google ve Apple hesapları otomatik olarak e-posta adresi üzerinden birleştirilmez. [Apple silme kılavuzu](https://developer.apple.com/support/offering-account-deletion-in-your-app/) · [Play silme şartı](https://support.google.com/googleplay/android-developer/answer/13327111) · [Orcinal silme yolu](https://veinpsycoo.github.io/sole-radar/hesabim/?islem=sil)
+- **Mağaza formları.** App Privacy ve Play Data safety beyanlarına ad, e-posta, kimlik, favoriler, numaralar ve opt-in cihaz bildirim verilerinin gerçek kullanımını işle. Kullanılan üçüncü taraf SDK’larını, nihai IPA gizlilik manifestlerini ve gerekli API gerekçelerini denetle. Yaş/içerik derecelendirmesini, destek adresini, erişilebilir politika URL’sini, cihaz ekran görüntülerini ve inceleme hesabını tamamla. [Apple gizlilik beyanı](https://developer.apple.com/app-store/app-privacy-details/) · [Google Data safety](https://support.google.com/googleplay/android-developer/answer/10787469)
+- **İçerik ve mağazalar.** Ürün görsellerini ve fiyat verilerini dağıtma izinlerinin kapsamını mağaza bazında kayda geçir. Stok filtreleri, eski fiyatın elenmesi ve mağaza yönlendirmesi gerçek ürünlerle kontrol edilmeli. [Apple inceleme kuralları, 5.2](https://developer.apple.com/app-store/review/guidelines/#intellectual-property)
+- **Son cihaz turu.** Fiziksel iPhone’da ilk açılış, Google/Apple iptal ve başarılı giriş, yeniden başlatma, web-mobil favori ve beden eşitleme, çıkış, silme, fiyat alarmı ve kapalı uygulamada bildirim. Android’de Play imzalı test dağıtımında aynı tur. Mağaza ikonunu ve gerçek açılış ekranını imzalı uygulamada kontrol et. Expo Go sistem açılış ekranını ve yerel Google SDK’sını tam olarak temsil etmez. [Expo Google girişi](https://docs.expo.dev/guides/google-authentication/) · [Expo açılış ekranı](https://docs.expo.dev/versions/v58.0.0/sdk/splash-screen/)
+
+## Önizlemede doğrulananlar
+
+- Ücretsiz Orcinal Firebase projesi, Google sağlayıcısı, web ve iOS uygulama kaydı, Android yerel test sertifikası, Frankfurt Firestore ve hesap sahibine özel profil belgesi.
+- Web önizlemesinde mobil genişlikte gerçek Google hesap seçicisine geçiş. Yerel Google giriş simülasyonunda profil adı, iki beden, favori kaydı, sayfa yenileme, favoriden kaldırma, tekrar kimlik doğrulama ve hesap silme.
+- Erişim testinde başka kullanıcı ve ziyaretçi için okuma, yazma ve silme reddedildi. Genel profil listelemesi, beklenmeyen alan ve liste sınırı aşımı reddedildi. Testi çalıştırmak için Firebase Emulator Suite ile `firebase emulators:exec --project demo-orcinal-release --only auth,firestore "node test_profile.mjs"` kullanılabilir.
+- Üretim cihazı ve sağlayıcı izinleri gerektiren maddeler açık. Mağazalara başvuru yapılmadı.

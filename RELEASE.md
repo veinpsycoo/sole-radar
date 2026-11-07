@@ -1,3 +1,7 @@
+# Güncel Orcinal yayın hazırlığı
+
+[8 Kasım 2026 yayın kaydı ve altı saatlik uygulama planı](ORCINAL-YAYIN.md)
+
 # SOLE RADAR — yayın durumu, 7 Kasım 2026
 
 ## Yayımlanan web

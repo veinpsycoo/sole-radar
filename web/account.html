@@ -1,0 +1,17 @@
+<section class="account-panel" aria-labelledby="acct-title">
+  <h1 id="acct-title">Hesabım</h1>
+  <p id="acct-state" role="status" aria-live="polite">Hesap yükleniyor…</p>
+  <div id="guest" hidden><p>Numaralarını ve favori ayakkabılarını tüm cihazlarında kullan.</p><button id="login" type="button">Google ile devam et</button></div>
+  <div id="member" hidden>
+    <p id="email"></p>
+    <form id="profile-form"><label for="display-name">Profil adı</label><input id="display-name" maxlength="60" autocomplete="nickname">
+    <fieldset><legend>Numaralarım</legend><p>En fazla üç numara seçebilirsin.</p><div id="acct-sizes"></div></fieldset>
+    <button>Profili kaydet</button></form>
+    <a id="search-sizes" href="/">Numaralarımla ayakkabı bul ↗</a>
+    <h2>Favorilerim</h2><button id="add-favorite" type="button" hidden>Bu modeli favorilere ekle</button><ul id="favorite-list"></ul>
+    <button id="logout" class="secondary" type="button">Çıkış yap</button>
+  </div>
+  <details id="delete-help"><summary>Hesabımı ve verilerimi sil</summary><p>Hesabın, kayıtlı numaraların ve favorilerin kalıcı olarak silinir. Giriş yaptıktan sonra kimliğini tekrar doğrulaman istenir. Hesabına erişemiyorsan <a href="mailto:veinpsyco@gmail.com?subject=Orcinal%20hesap%20silme">destekten silme talep et</a>.</p><button type="button" id="delete-account" class="danger" hidden>Hesabımı kalıcı olarak sil</button></details>
+  <a href="/gizlilik/">Gizlilik ve veri kullanımı ↗</a>
+  <noscript>Hesap işlemleri için JavaScript’i etkinleştir.</noscript>
+</section><script type="module" src="/vendor/orcinal-account.js"></script>

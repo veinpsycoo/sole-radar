@@ -30,7 +30,7 @@ def main():
     (OUT / '.github/workflows').mkdir(parents=True, exist_ok=True)
     shutil.copy2(ROOT / '.github/workflows/pages.yml', OUT / '.github/workflows/pages.yml')
     data = s.catalog()
-    paths = ['/', '/blog/', '/modeller/', '/robots.txt', '/sitemap.xml', '/llms.txt', '/yontem/', '/hakkimizda/', '/gizlilik/', '/foto/', '/takvim/']
+    paths = ['/', '/hesabim/', '/blog/', '/modeller/', '/robots.txt', '/sitemap.xml', '/llms.txt', '/yontem/', '/hakkimizda/', '/gizlilik/', '/foto/', '/takvim/']
     paths += list(s.MODEL_PAGES)
     paths += ['/blog/' + a['slug'] + '/' for a in s.ARTICLES]
     paths += ['/urun/' + p['id'] + '/' for p in data['products']]
@@ -56,7 +56,7 @@ def main():
         css.write('\n[hidden]{display:none!important}\n')
     (OUT / 'vendor').mkdir(exist_ok=True)
     shutil.copytree(ROOT/'web/vendor/vision', OUT/'vendor/vision', dirs_exist_ok=True)
-    assets = ['radar.svg', 'social-card.png', 'fonts.css', 'LENIS-LICENSE.txt']
+    assets = ['orcinal.svg', 'orcinal-account.js', 'orcinal-firebase.json', 'radar.svg', 'social-card.png', 'fonts.css', 'LENIS-LICENSE.txt']
     assets += [p.name for pattern in ('*.ttf', '*.woff2', '*-OFL.txt') for p in (ROOT / 'web/vendor').glob(pattern)]
     for name in assets:
         shutil.copy2(ROOT / 'web/vendor' / name, OUT / 'vendor' / name)
