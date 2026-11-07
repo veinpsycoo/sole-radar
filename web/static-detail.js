@@ -1,7 +1,7 @@
 // GitHub Pages applies the same multi-size selection to the exported offer rows.
 'use strict';
 const form = document.querySelector('.detail-size');
-const selections = [...new Set(new URLSearchParams(location.search).getAll('beden').filter(Boolean).map(s=>s.slice(0,40).replace(',', '.')))].slice(0,3);
+const selections = [...new Set(new URLSearchParams(location.search).getAll('beden').map(shoeSize).filter(Boolean))].slice(0,3);
 const picker=form.querySelector('[data-size-picker]');
 selections.forEach(value=>{
   if([...picker.querySelectorAll('input')].some(input=>input.value===value)) return;
@@ -17,8 +17,8 @@ for(const offer of document.querySelectorAll('.offer-detail')) {
   const age=Date.now()-new Date(offer.querySelector('time').dateTime).getTime();
   const rows=[...offer.querySelectorAll('li')];
   rows.forEach(row=>{
-    const size=row.firstChild.textContent.trim();
-    row.hidden=!(age>=-300000&&age<86400000) || (selections.length>0&&!selections.includes(size));
+    const size=shoeSize(row.firstChild.textContent.trim());
+    row.hidden=!(age>=-300000&&age<86400000) || (new URLSearchParams(location.search).has('beden')&&!selections.includes(size));
     if(!row.hidden) {
       const price=Number(row.querySelector('strong').textContent.replaceAll('.','').replace(',','.').replace(/[^\d.]/g,''));
       if(Number.isFinite(price)&&price>0) {prices.push(price);offerPrices.push(price);}else row.hidden=true;

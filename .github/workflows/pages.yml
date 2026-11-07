@@ -1,0 +1,59 @@
+name: Publish SOLE RADAR
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: '23 */6 * * *'
+permissions:
+  contents: read
+concurrency:
+  group: sole-radar-pages
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: published
+      - uses: actions/checkout@v4
+        with:
+          ref: source
+          path: source
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Seed the last published catalog
+        run: |
+          mkdir -p source/data
+          cp published/api/catalog.json source/data/catalog.json
+      - name: Refresh store data
+        if: github.event_name != 'push'
+        working-directory: source
+        run: python collector.py --limit 0
+      - name: Validate and export
+        working-directory: source
+        run: |
+          python -m unittest test_collector test_site test_refresh_guard test_worker test_publish test_ghpages -q
+          node test_selection.mjs
+          python -c "import site_pages as s; d=s.catalog(); assert len(d['sources']) == 11 and any(s.fresh_offers(p,d) for p in d['products']), 'No fresh catalog to publish'"
+          python export_ghpages.py
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: source/data/github-export
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publish
+        id: deployment
+        uses: actions/deploy-pages@v4

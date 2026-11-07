@@ -20,7 +20,7 @@ function options(id, values, label) {
 }
 function loadFilters() {
   options('brand', [...new Set(data.products.map(p => p.brand))].sort(), 'Tüm markalar');
-  const sizes = [...new Set(data.products.flatMap(p => p.offers.filter(fresh).flatMap(o => o.variants.map(v => v.size))).filter(Boolean))].sort((a,b) => a.localeCompare(b,'tr',{numeric:true})).map(value => ({value, label:value.replace('.', ',')}));
+  const sizes = [...new Set(data.products.flatMap(p => p.offers.filter(fresh).flatMap(o => o.variants.filter(v=>v.available===true).map(v => shoeSize(v.size)))).filter(Boolean))].sort((a,b) => a.localeCompare(b,'tr',{numeric:true})).map(value => ({value, label:value.replace('.', ',')}));
   const selected=selectedSizes();
   $('size-options').innerHTML=sizes.map(({value,label})=>`<label><input type="checkbox" name="size" value="${esc(value)}"><span>${esc(label)}</span></label>`).join('');
   sizePicker.set($('size-picker'),selected);
@@ -35,7 +35,7 @@ function selectProducts() {
   return data.products.flatMap(p => {
     if (brand && p.brand !== brand) return [];
     const offers = p.offers.filter(o => fresh(o) && safe(o.url)).flatMap(o => {
-      const variants = o.variants.filter(v => v.available === true && Number.isInteger(v.price) && v.price > 0 && sizes.includes(v.size));
+      const variants = o.variants.filter(v => v.available === true && Number.isInteger(v.price) && v.price > 0 && sizes.includes(shoeSize(v.size)));
       return variants.length ? [{...o,variants,price:Math.min(...variants.map(v=>v.price))}] : [];
     }).sort((a,b)=>a.price-b.price);
     return offers.length ? [{...p,offers,price:offers[0].price}] : [];

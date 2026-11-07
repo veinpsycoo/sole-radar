@@ -10,6 +10,10 @@ import site_pages as pages
 
 
 class SiteTests(unittest.TestCase):
+    def test_selectable_sizes_are_adult_eu_and_fraction_labels_match(self):
+        for value, expected in [('44,5','44.5'), ('36⅔','36 ⅔'), ('35','35'), ('50','50'), ('50.5',''), ('34',''), ('S',''), ('One Size',''), ('12 Ay',''), ('US 8',''), ('','')]:
+            self.assertEqual(pages.shoe_size(value), expected, value)
+
     def setUp(self):
         self.env = patch.dict(os.environ, {'SITE_URL': 'https://example.test'})
         self.env.start()
@@ -134,7 +138,7 @@ class SiteTests(unittest.TestCase):
         self.assertIn('"lowPrice": "1299.99"', html)
         self.assertNotIn('999,99', html)
         self.assertIn('noindex,follow', html)
-        self.assertIn('&lt;test&gt;', missing)
+        self.assertNotIn('value="&lt;test&gt;"', missing)
         self.assertNotIn('<test>', missing)
         self.assertNotIn('AggregateOffer', missing)
         self.assertEqual(len(self.offer['variants']), 2)

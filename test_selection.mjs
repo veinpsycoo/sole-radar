@@ -12,6 +12,10 @@ const context = vm.createContext({URL, URLSearchParams, Intl, Date, setTimeout, 
     return elements.get(id);
   }}});
 vm.runInContext(readFileSync('web/size-picker.js','utf8'),context);
+for (const [input,expected] of [['44,5','44.5'],['36⅔','36 ⅔'],['35','35'],['50','50'],['50.5',''],['34',''],['S',''],['M',''],['One Size',''],['12 Ay',''],['US 8',''],['','']]) {
+  context.sizeInput=input;
+  assert.equal(vm.runInContext('shoeSize(sizeInput)',context),expected,input);
+}
 vm.runInContext(readFileSync('web/app.js','utf8').replace('load();checkStatus();',''), context);
 const offer = (sourceId, variants, age=0) => ({sourceId, variants, url:'https://store.example/product', checkedAt:new Date(Date.now()-age).toISOString()});
 const variant = (size, price, available=true) => ({size,price,available});

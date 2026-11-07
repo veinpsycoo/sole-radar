@@ -1,4 +1,9 @@
 'use strict';
+function shoeSize(value) {
+  const match = String(value).trim().replace(',', '.').match(/^(\d{2})(?:([.]5)|\s*([⅓⅔]))?$/);
+  if (!match || Number(match[1]) < 35 || Number(match[1]) > 50 || (match[1] === '50' && (match[2] || match[3]))) return '';
+  return match[1] + (match[2] || (match[3] ? ' ' + match[3] : ''));
+}
 const sizePicker = {
   values(root) { return [...root.querySelectorAll('input:checked')].map(input=>input.value); },
   sync(root) {
@@ -10,7 +15,7 @@ const sizePicker = {
     root.querySelector('[data-size-count]').textContent=`${values.length} / 3 seçili · Seçimi kaldırmak için tike dokun.`;
   },
   set(root, values) {
-    const selected=[...new Set(values.map(value=>value.replace(',','.')).filter(Boolean))].slice(0,3);
+    const selected=[...new Set(values.map(shoeSize).filter(Boolean))].slice(0,3);
     root.querySelectorAll('input').forEach(input=>{input.checked=selected.includes(input.value);});
     this.sync(root);
   }
