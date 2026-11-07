@@ -62,10 +62,19 @@ class CollectorTests(unittest.TestCase):
             self.assertIsNone(c.money(bad))
 
     def test_non_shoes_are_not_catalogued(self):
-        for name in ['Clima Bottle', 'Urban Bottle', 'Ayakkabı bakım seti', 'Sneaker çorap', 'Botanik poster', 'Books New Shoes: Contemporary Footwear Design', 'Ayakkabı çanta', 'Ayakkabı bağcık seti', 'Ayakkabı bağcıkları']:
+        for name in ['Sandalet','Nike Calm Sandals','RX SLIDE 3.0 Ayakkabı','Ev Terliği','Ayakkabı / Flip-Flop', 'Clima Bottle', 'Urban Bottle', 'Ayakkabı bakım seti', 'Sneaker çorap', 'Botanik poster', 'Books New Shoes: Contemporary Footwear Design', 'Ayakkabı çanta', 'Ayakkabı bağcık seti', 'Ayakkabı bağcıkları']:
             self.assertFalse(c.footwear(name), name)
-        for name in ['Kadın Bot', 'Outdoor Ayakkabı', 'Sandalet', 'Sneaker', 'Krampon', 'Bağcıklı Erkek Ayakkabı']:
+        for name in ['Kadın Bot', 'Outdoor Ayakkabı', 'Slip-On Sneaker', 'Sandalwood Sneaker', 'Sneaker', 'Krampon', 'Bağcıklı Erkek Ayakkabı']:
             self.assertTrue(c.footwear(name), name)
+
+    def test_featured_catalog_filters_existing_and_future_offers(self):
+        offer={'sourceId':'store','url':'https://example.test/shoes'}
+        p={'brand':'ADİDAS','name':'Campus','offers':[offer]}
+        raw={'products':[p,p|{'brand':'UNKNOWN'},p|{'name':'Adilette 22'},p|{'name':'Model','offers':[offer|{'url':'https://example.test/kadin-terlik'}]}],'sources':[{'id':'store','count':4}]}
+        got=c.featured_catalog(raw)
+        self.assertEqual([(x['brand'],x['name']) for x in got['products']],[('ADIDAS','Campus')])
+        self.assertEqual(got['sources'][0]['count'],1)
+        self.assertEqual(len(raw['products']),4)
 
     def test_codes_preserve_colors(self):
         self.assertEqual(c.style_code('ASICS', '1011C080-020-10'), '1011C080-020')

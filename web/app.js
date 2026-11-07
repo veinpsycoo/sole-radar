@@ -22,8 +22,15 @@ function options(id, values, label) {
   $(id).innerHTML = `<option value="">${label}</option>` + values.map(v => `<option value="${esc(v.value ?? v)}">${esc(v.label ?? v)}</option>`).join('');
   if ([...$(id).options].some(o => o.value === old)) $(id).value = old;
 }
+function availableBrands(sizes) {
+  return [...new Set(data.products.filter(p=>p.offers.some(o=>fresh(o)&&o.variants.some(v=>v.available===true && shoeSize(v.size) && (!sizes.length || sizes.includes(shoeSize(v.size)))))).map(p=>p.brand))].sort();
+}
+function brandMenu(){
+  const before=$('brand').value;
+  options('brand',availableBrands(selectedSizes()),'Tüm markalar');
+  if(before && before!==$('brand').value)$('model').value='';
+}
 function loadFilters() {
-  options('brand', [...new Set(data.products.map(p => p.brand))].sort(), 'Tüm markalar');
   const sizes = [...new Set(data.products.flatMap(p => p.offers.filter(fresh).flatMap(o => o.variants.filter(v=>v.available===true).map(v => shoeSize(v.size)))).filter(Boolean))].sort((a,b) => Number(a.replace(' ⅓','.333').replace(' ⅔','.667'))-Number(b.replace(' ⅓','.333').replace(' ⅔','.667'))).map(value => ({value, label:value.replace('.', ',')}));
   const selected=selectedSizes();
   $('size-options').innerHTML=sizes.map(({value,label})=>`<label><input type="checkbox" name="size" value="${esc(value)}"><span>${esc(label)}</span></label>`).join('');
@@ -63,7 +70,9 @@ function rankRow(r,i,previous) {
   const sizes=[...new Set(o.variants.filter(v=>v.price===price).map(v=>shoeSize(v.size).replace('.',',')))].join(' · ');
   const change=delta?`<small class="movement">${delta>0?'▲':'▼'} ${Math.abs(delta)} sıra</small>`:'';
   const cut=prior&&prior.price>price?`<small class="price-cut">↓ ${currency.format((prior.price-price)/100)}</small>`:'';
-  return `<a class="timing-row pos-${Math.min(i+1,4)}" data-key="${esc(key)}" href="${esc(safe(o.url))}" target="_blank" rel="noopener noreferrer"><span class="position"><b>${String(i+1).padStart(2,'0')}</b>${change}</span><span class="timing-thumb">${safe(p.image)?`<img src="${esc(safe(p.image))}" alt="" loading="lazy" width="64" height="56">`:''}</span><span class="timing-product"><small>${esc(p.brand)}${i===0?' <em>🔥 LİDER</em>':''}</small><strong>${esc(p.name)}</strong><span>${esc(sourceName(o.sourceId))} · EU ${esc(sizes)}</span></span><span class="timing-price"><b>${currency.format(price/100)}</b>${cut}<small>${verified.has(key)?'Mağaza kontrolü':'Tarama'} · ${esc(date(o.checkedAt))}</small></span><span class="timing-arrow" aria-hidden="true">↗</span></a>`;
+  const brand=p.brand || '', name=p.name.toLocaleUpperCase('tr').startsWith(brand.toLocaleUpperCase('tr')+' ')?p.name.slice(brand.length).trim():p.name;
+  const current=verified.has(key), stamp=date(o.checkedAt);
+  return `<a class="timing-row pos-${Math.min(i+1,4)}" data-key="${esc(key)}" href="${esc(safe(o.url))}" target="_blank" rel="noopener noreferrer" aria-label="${i+1}. sıra · ${esc(p.name)} · ${currency.format(price/100)} · ${esc(sourceName(o.sourceId))} mağazasında aç"><span class="timing-thumb">${safe(p.image)?`<img src="${esc(safe(p.image))}" alt="" loading="lazy" width="92" height="82">`:''}<span class="position"><b>${String(i+1).padStart(2,'0')}</b></span></span><span class="timing-product"><small>${esc(brand)}${i===0?' <em>LİDER</em>':''}</small><strong>${esc(name)}</strong><span class="row-size">EU ${esc(sizes)}</span></span><span class="timing-price"><b>${currency.format(price/100)}</b>${cut}${change}</span><span class="row-foot"><span class="store-name">${esc(sourceName(o.sourceId))} <span aria-hidden="true">↗</span></span><time class="${current?'checked':'snapshot'}" datetime="${esc(o.checkedAt)}" title="${esc(stamp)} TSİ">${current?'Kontrol':'Tarama'} · ${esc(stamp)}</time></span></a>`;
 }
 function draw(previous) {
   const grid=$('grid'), focusKey=document.activeElement?.closest?.('.timing-row')?.dataset.key;
@@ -134,6 +143,7 @@ async function load() {
     data=next;loadFilters();
     const params=new URLSearchParams(location.search);
     sizePicker.set($('size-picker'),[...params.getAll('size'),...params.getAll('size2')]);
+    brandMenu();
     if(params.has('brand')) $('brand').value=params.get('brand');
     $('model').value=(params.get('model')||'').slice(0,100);suggestions();sources();
     $('timing-status').textContent='Tarama fiyatları · Seçimine uyan teklifler sırayla mağazadan kontrol edilir.';
@@ -169,8 +179,8 @@ async function checkStatus() {
 }
 $('filters').addEventListener('submit',e=>e.preventDefault());
 let typing;
-$('filters').addEventListener('input',e=>{clearTimeout(typing);if(e.target.id==='brand')$('model').value='';const update=()=>{suggestions();filter();recheck();};if(e.target.id==='model')typing=setTimeout(update,160);else update();});
-$('filters').addEventListener('reset',()=>setTimeout(()=>{suggestions();filter();},0));
+$('filters').addEventListener('input',e=>{clearTimeout(typing);if(e.target.id==='brand')$('model').value='';const update=()=>{if(e.target.name==='size')brandMenu();suggestions();filter();recheck();};if(e.target.id==='model')typing=setTimeout(update,160);else update();});
+$('filters').addEventListener('reset',()=>setTimeout(()=>{brandMenu();suggestions();filter();},0));
 $('more').addEventListener('click',()=>{const previous=shown;shown+=36;draw();const next=$('grid').children[previous];next?.focus();});
 $('refresh').addEventListener('click',async()=>{
   $('refresh').disabled=true;

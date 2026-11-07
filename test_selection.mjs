@@ -71,3 +71,6 @@ choose('44.5');
 assert(boxes.every(b=>!b.disabled));
 assert.equal(labels['[data-size-label]'].textContent,'44,5');
 console.log('Three checked sizes, third-size prices, limit and deselection passed.');
+
+assert.deepEqual(JSON.parse(JSON.stringify(vm.runInContext("availableBrands(['44.5'])",context))),['SALOMON']);
+assert.deepEqual(JSON.parse(JSON.stringify(vm.runInContext("availableBrands(['50'])",context))),[]);

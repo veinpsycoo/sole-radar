@@ -154,7 +154,31 @@ def style_code(brand, sku, size=''):
     return '-'.join(match.groups()) if match else ''
 
 
+FEATURED_BRANDS = set('ADIDAS|ASICS|BROOKS|CAMPER|COLUMBIA|CONVERSE|DR. MARTENS|GOLDEN GOOSE|HOKA|JORDAN|LACOSTE|MERRELL|MIZUNO|NEW BALANCE|NIKE|ON|PUMA|REEBOK|SALOMON|SAUCONY|SKECHERS|THE NORTH FACE|TIMBERLAND|UGG|VANS|VEJA'.split('|'))
+OPEN_SHOE = re.compile(r'\b(?:sandal(?:et)?(?:s|ler\w*|i)?|terli[kğ]\w*|slides?|sliders?|slippers?|flip[\s-]?flops?|clogs?|sabolar?|mules?|parmak[\s-]+aras[ıi]|adilette|summeride|snowclog|birkenstock arizona)\b', re.I)
+
+
+def open_shoe(text):
+    return bool(OPEN_SHOE.search(str(text).replace('_', ' ')))
+
+
+def featured_catalog(data):
+    products, counts = [], {}
+    for p in data['products']:
+        brand = p['brand'].replace('İ', 'I')
+        if brand not in FEATURED_BRANDS or open_shoe(p['name']):
+            continue
+        offers = [o for o in p['offers'] if not open_shoe(urlsplit(o['url']).path)]
+        if offers:
+            products.append(p | {'brand':brand, 'offers':offers})
+            for o in offers:
+                counts[o['sourceId']] = counts.get(o['sourceId'], 0) + 1
+    return data | {'products':products, 'sources':[s | {'count':counts.get(s['id'],0)} for s in data['sources']]}
+
+
 def footwear(text):
+    if open_shoe(text):
+        return False
     text = str(text).casefold()
     shoe = any(w in text for w in ['ayakkab', 'sneaker', 'sandalet', 'terlik', 'boots', 'shoes', 'footwear', 'krampon']) or re.search(r'\bbot(?:u|lar[ıi]?)?\b', text)
     return bool(shoe) and not any(w in text for w in ['bakım', 'temizleyici', 'çekeceği', 'corap', 'çorap']) and not re.search(r'\b(books?|kitap|kitabı|poster|çanta|bag|bağcık(?:lar[ıi]?)?)\b', text)
@@ -353,7 +377,7 @@ def json_object(text):
 def beymen_rows(source, entries):
     for p in entries:
         categories = ' '.join(str(p.get(key, '')) for key in ('productSubCategory', 'producMainCategory'))
-        if 'ayakkab' not in categories.casefold() or not footwear('Ayakkabı ' + p.get('displayName', '')):
+        if 'ayakkab' not in categories.casefold() or open_shoe(p.get('productCategory','')) or not footwear('Ayakkabı ' + p.get('displayName', '')):
             continue
         if (p.get('isOutOfStock') is not False and not (source.get('live_check') and p.get('isOutOfStock') is True)) or p.get('isPreOwned') is True:
             continue
@@ -524,7 +548,7 @@ def assemble(results):
             offer = {k: row[k] for k in ['sourceId', 'url', 'variants', 'checkedAt']}
             if not any(o['sourceId'] == offer['sourceId'] and o['url'] == offer['url'] for o in item['offers']):
                 item['offers'].append(offer)
-    return dict(generatedAt=now(), sources=statuses, products=list(grouped.values()))
+    return featured_catalog(dict(generatedAt=now(), sources=statuses, products=list(grouped.values())))
 
 
 def refresh(limit=120, progress=None, only=None):
