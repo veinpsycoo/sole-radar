@@ -20,7 +20,7 @@ function options(id, values, label) {
 }
 function loadFilters() {
   options('brand', [...new Set(data.products.map(p => p.brand))].sort(), 'Tüm markalar');
-  const sizes = [...new Set(data.products.flatMap(p => p.offers.filter(fresh).flatMap(o => o.variants.filter(v=>v.available===true).map(v => shoeSize(v.size)))).filter(Boolean))].sort((a,b) => a.localeCompare(b,'tr',{numeric:true})).map(value => ({value, label:value.replace('.', ',')}));
+  const sizes = [...new Set(data.products.flatMap(p => p.offers.filter(fresh).flatMap(o => o.variants.filter(v=>v.available===true).map(v => shoeSize(v.size)))).filter(Boolean))].sort((a,b) => Number(a.replace(' ⅓','.333').replace(' ⅔','.667'))-Number(b.replace(' ⅓','.333').replace(' ⅔','.667'))).map(value => ({value, label:value.replace('.', ',')}));
   const selected=selectedSizes();
   $('size-options').innerHTML=sizes.map(({value,label})=>`<label><input type="checkbox" name="size" value="${esc(value)}"><span>${esc(label)}</span></label>`).join('');
   sizePicker.set($('size-picker'),selected);

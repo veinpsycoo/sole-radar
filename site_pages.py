@@ -177,7 +177,7 @@ def resolve(path, query=''):
     offers = fresh_offers(p, data)
     selected_sizes = list(dict.fromkeys(size for value in parse_qs(query).get('beden', []) if (size := shoe_size(value))))[:3]
     selected_size = ' / '.join(selected_sizes).replace('.', ',')
-    sizes = sorted({size for o in offers for v in o['variants'] if (size := shoe_size(v.get('size', '')))}, key=lambda value: [int(t) if t.isdigit() else t for t in re.split(r'(\d+)', value)])
+    sizes = sorted({size for o in offers for v in o['variants'] if (size := shoe_size(v.get('size', '')))}, key=lambda value: float(value.replace(' ⅓', '.333').replace(' ⅔', '.667')))
     if parse_qs(query).get('beden'):
         offers = [o | {'variants': [v for v in o['variants'] if shoe_size(v['size']) in selected_sizes]} for o in offers]
         offers = [o | {'price': min(v['price'] for v in o['variants'])} for o in offers if o['variants']]
