@@ -4,13 +4,13 @@
   "title": "SOLE RADAR",
   "subtitle": "Modelini bul, fiyatı kıyasla",
   "keywords": "ayakkabı,sneaker,fiyat,karşılaştırma,beden,model,mağaza",
-  "description": "Aradığın ayakkabıyı model, marka, renk veya ürün koduyla bul. SOLE RADAR, tanımlı mağazaların tekliflerini tek aramada karşılaştırmana yardımcı olur. Beden seçerek o beden için doğrulanmış teklifleri inceleyebilir, mağazayı ve son kontrol zamanını görebilirsin.\n\n24 saati geçen teklifler aktif sonuçlardan çıkarılır. Satın almak istediğinde ilgili mağazanın sayfasına geçersin; uygulama içinde satış veya ödeme yapılmaz.\n\nFiyat ve stoklar değişebilir. Kargo ile koşullu kampanyalar gösterilen tutara dahil değildir. SOLE RADAR fiziksel ürün incelemesi veya orijinallik sertifikası sunmaz. Satın almadan önce mağazada son fiyatı, bedeni ve ürün kodunu kontrol et.",
-  "releaseNotes": "İlk sürüm: model ve beden araması, mağaza teklifleri ve kontrol zamanları.",
+  "description": "Aradığın ayakkabıyı model, marka, renk veya ürün koduyla bul. SOLE RADAR, tanımlı mağazaların tekliflerini tek aramada karşılaştırmana yardımcı olur. Beden seçerek o beden için doğrulanmış teklifleri inceleyebilir, mağazayı ve son kontrol zamanını görebilirsin.\n\n24 saati geçen teklifler aktif sonuçlardan çıkarılır. Satın almak istediğinde ilgili mağazanın sayfasına geçersin; uygulama içinde satış veya ödeme yapılmaz.\n\nFiyat ve stoklar değişebilir. Kargo dahil sıralamada teslimat koşulu doğrulanan teklifleri görebilirsin. Koşullu kampanyalar kapsam dışıdır. SOLE RADAR fiziksel ürün incelemesi veya orijinallik sertifikası sunmaz. Satın almadan önce mağazada son fiyatı, bedeni ve ürün kodunu kontrol et.",
+  "releaseNotes": "Üç numaraya kadar canlı fiyat sıralaması, kaydedilen seçimler, beden bazlı fiyat geçmişi ve isteğe bağlı fiyat/stok alarmları.",
   "reviewNotes": "Üyelik veya demo hesap gerekmez. Arama ve filtreleme uygulamada yapılır; satın alma mağazanın harici sayfasında gerçekleşir. Reklam takip aracı veya ödeme işlemi eklenmemiştir.",
   "requiredBeforeSubmission": [
     "Apple App Store Connect app ID and signing access",
     "Real device screenshots and physical-device tests",
-    "Confirm App Store privacy answers against the submitted binary"
+    "Declare optional push token, selected product, sizes and target price with Expo/Cloudflare processing; validate APNs and FCM on real devices"
   ],
   "supportUrl": "https://veinpsycoo.github.io/sole-radar/hakkimizda/",
   "privacyPolicyUrl": "https://veinpsycoo.github.io/sole-radar/gizlilik/",
