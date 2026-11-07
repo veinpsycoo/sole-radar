@@ -30,7 +30,8 @@ def main():
     (OUT / '.github/workflows').mkdir(parents=True, exist_ok=True)
     shutil.copy2(ROOT / '.github/workflows/pages.yml', OUT / '.github/workflows/pages.yml')
     data = s.catalog()
-    paths = ['/', '/blog/', '/modeller/', '/robots.txt', '/sitemap.xml', '/llms.txt', '/yontem/', '/hakkimizda/', '/gizlilik/']
+    paths = ['/', '/blog/', '/modeller/', '/robots.txt', '/sitemap.xml', '/llms.txt', '/yontem/', '/hakkimizda/', '/gizlilik/', '/foto/', '/takvim/']
+    paths += list(s.MODEL_PAGES)
     paths += ['/blog/' + a['slug'] + '/' for a in s.ARTICLES]
     paths += ['/urun/' + p['id'] + '/' for p in data['products']]
     n = 0
@@ -49,11 +50,12 @@ def main():
     active = sum(bool(s.fresh_offers(p, data)) for p in data['products'])
     for number in range(1, (active + 59) // 60 + 1):
         write(f'/modeller/page/{number}/', s.resolve('/modeller/', f'page={number}')[1])
-    for name in ['app.js', 'size-picker.js', 'size-picker.css', 'hero-3d.js', 'motion.js', 'style.css', 'editorial.css', 'pages.css']:
+    for name in ['app.js', 'radar.js', 'size-picker.js', 'size-picker.css', 'hero-3d.js', 'motion.js', 'style.css', 'editorial.css', 'pages.css']:
         (OUT / name).write_text(fix((ROOT / 'web' / name).read_text(encoding='utf-8')), encoding='utf-8')
     with (OUT / 'pages.css').open('a', encoding='utf-8') as css:
         css.write('\n[hidden]{display:none!important}\n')
     (OUT / 'vendor').mkdir(exist_ok=True)
+    shutil.copytree(ROOT/'web/vendor/vision', OUT/'vendor/vision', dirs_exist_ok=True)
     assets = ['radar.svg', 'social-card.png', 'fonts.css', 'LENIS-LICENSE.txt']
     assets += [p.name for pattern in ('*.ttf', '*.woff2', '*-OFL.txt') for p in (ROOT / 'web/vendor').glob(pattern)]
     for name in assets:
@@ -62,6 +64,8 @@ def main():
         css.write_text(css.read_text(encoding='utf-8').replace('url(/vendor/', 'url(' + BASE + '/vendor/'), encoding='utf-8')
     shutil.copy2(ROOT / 'web/static-detail.js', OUT / 'static-detail.js')
     (OUT / 'api').mkdir(exist_ok=True)
+    if (CATALOG.parent/'radar').is_dir():
+        shutil.copytree(CATALOG.parent/'radar', OUT/'radar', dirs_exist_ok=True)
     shutil.copy(CATALOG, OUT / 'api' / 'catalog.json')
     (OUT / 'api' / 'status.json').write_text(json.dumps({'running': False, 'readOnly': True, 'preview': True, 'generatedAt':data['generatedAt'], 'error': '', 'progress': {}}), encoding='utf-8')
     nf = s.page('Sayfa bulunamadı', 'Aradığın sayfa bulunamadı.', '/404', '<h1>Bu sayfa radarımızda yok.</h1><a href="/">Ana sayfaya dön ↗</a>', index=False)

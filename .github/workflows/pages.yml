@@ -30,15 +30,26 @@ jobs:
         run: |
           mkdir -p source/data
           cp published/api/catalog.json source/data/catalog.json
-      - name: Refresh store data
-        if: github.event_name != 'push'
+      - uses: actions/cache/restore@v4
+        with:
+          path: source/data/radar
+          key: radar-history-${{ github.run_id }}
+          restore-keys: radar-history-
+      - name: Record observed prices by size
         working-directory: source
-        run: python collector.py --limit 0
+        run: |
+          if [ ! -d data/radar ] && [ -d ../published/radar ]; then cp -R ../published/radar data/radar; fi
+          if [ "${{ github.event_name }}" = "push" ]; then python radar_data.py; else python collector.py --limit 0; fi
+      - uses: actions/cache/save@v4
+        with:
+          path: source/data/radar
+          key: radar-history-${{ github.run_id }}
       - name: Validate and export
         working-directory: source
         run: |
-          python -m unittest test_collector test_site test_refresh_guard test_worker test_publish test_ghpages -q
+          python -m unittest test_collector test_site test_refresh_guard test_worker test_publish test_ghpages test_radar -q
           node test_selection.mjs
+          node alerts/test.mjs
           python -c "import site_pages as s; d=s.catalog(); assert len(d['sources']) == 11 and any(s.fresh_offers(p,d) for p in d['products']), 'No fresh catalog to publish'"
           python export_ghpages.py
       - uses: actions/upload-pages-artifact@v4

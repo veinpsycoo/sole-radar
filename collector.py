@@ -597,6 +597,8 @@ def refresh(limit=120, progress=None, only=None):
         temp = CATALOG.with_suffix('.tmp')
         temp.write_text(json.dumps(data, ensure_ascii=False), encoding='utf-8')
         temp.replace(CATALOG)
+        from radar_data import update
+        update(data, CATALOG.parent/'radar')
         return data
     finally:
         try:

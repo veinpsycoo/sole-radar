@@ -11,7 +11,7 @@ from urllib.parse import urlsplit
 from collector import ROOT, CATALOG
 from site_pages import resolve, site_url, catalog, fresh_offers, page, HTML
 
-STATIC = {'app.js', 'size-picker.js', 'size-picker.css', 'hero-3d.js', 'motion.js', 'style.css', 'editorial.css', 'pages.css'}
+STATIC = {'radar.js', 'app.js', 'size-picker.js', 'size-picker.css', 'hero-3d.js', 'motion.js', 'style.css', 'editorial.css', 'pages.css'}
 
 
 def response(path, query):
@@ -40,7 +40,7 @@ def response(path, query):
         status, body, mime = resolved
         return status, body.encode('utf-8'), mime
     name = path.removeprefix('/')
-    if name in STATIC or re.fullmatch(r'vendor/[a-zA-Z0-9_.-]+', name):
+    if name in STATIC or re.fullmatch(r'vendor/(?:vision/)?[a-zA-Z0-9_.-]+', name):
         file = ROOT / 'web' / name
         if file.is_file() and not file.is_symlink() and file.resolve().is_relative_to(ROOT / 'web'):
             return 200, file.read_bytes(), mimetypes.guess_type(file.name)[0] or 'application/octet-stream'
@@ -62,7 +62,8 @@ def application(environ, start_response):
         except (OSError, ValueError, KeyError):
             status, body, mime = 503, b'Service temporarily unavailable', 'text/plain'
     hashes = ' '.join("'sha256-" + base64.b64encode(hashlib.sha256(s).digest()).decode() + "'" for s in re.findall(rb'<script type="application/ld\+json">(.*?)</script>', body))
-    headers = [('Content-Type', mime), ('Content-Length', str(len(body))), ('X-Content-Type-Options', 'nosniff'), ('Referrer-Policy', 'no-referrer'), ('Cache-Control', 'public, max-age=86400' if path.startswith('/vendor/') and status == 200 else 'no-store'), ('Content-Security-Policy', f"default-src 'self'; script-src 'self' {hashes}; style-src 'self'; img-src 'self' https:; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"), ('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')]
+    wasm = "'wasm-unsafe-eval'" if path == '/foto/' else ''
+    headers = [('Content-Type', mime), ('Content-Length', str(len(body))), ('X-Content-Type-Options', 'nosniff'), ('Referrer-Policy', 'no-referrer'), ('Cache-Control', 'public, max-age=86400' if path.startswith('/vendor/') and status == 200 else 'no-store'), ('Content-Security-Policy', f"default-src 'self'; script-src 'self' {wasm} {hashes}; style-src 'self'; img-src 'self' https: blob:; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"), ('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')]
     if path.startswith('/api/teklif/'):
         headers += [('Access-Control-Allow-Origin', '*'), ('Vercel-CDN-Cache-Control', 'public, s-maxage=45' if status==200 else 'public, s-maxage=15')]
     if status == 405:

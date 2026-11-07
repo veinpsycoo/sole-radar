@@ -29,3 +29,5 @@
 - A single imagegen extraction was evaluated but is not used by the live turntable. Prompt: background extraction only, preserve shoe, canvas and camera angle; transparent PNG. Original generated output remains in the Codex generated-images directory.
 - rembg: https://github.com/danielgatis/rembg; U2Net: https://github.com/xuebinqin/U-2-Net
 - The earlier Nike model and lighting assets are no longer loaded and are excluded from the Vercel preview package.
+
+Photo matching: web/vendor/vision contains ONNX Runtime Web 1.22.0 and the ONNX Model Zoo SqueezeNet 1.1 (opset 7). Redistribution notices and licenses are in that directory. Model source: https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet . The local reference index contains features of retailer catalog photos. Photos are loaded from the original retailers.

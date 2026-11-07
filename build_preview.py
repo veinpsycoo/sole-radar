@@ -9,16 +9,22 @@ def build():
     destination = ROOT / 'preview'
     for folder in ('api', 'web', 'public/vendor', 'content', 'data'):
         (destination / folder).mkdir(parents=True, exist_ok=True)
-    for name in ('collector.py', 'site_pages.py', 'public_app.py', 'live_quote.py', 'refresh_guard.py'):
+    for name in ('collector.py', 'site_pages.py', 'public_app.py', 'live_quote.py', 'refresh_guard.py', 'releases.py', 'radar_data.py'):
         shutil.copy2(ROOT / name, destination / name)
     shutil.copy2(ROOT / 'content/articles.json', destination / 'content/articles.json')
+    if (CATALOG.parent/'radar').is_dir():
+        shutil.copytree(CATALOG.parent/'radar', destination/'public/radar', dirs_exist_ok=True)
     snapshot = CATALOG.read_bytes()
+    if (CATALOG.parent/'radar/releases.json').is_file():
+        (destination/'data/radar').mkdir(exist_ok=True)
+        shutil.copy2(CATALOG.parent/'radar/releases.json', destination/'data/radar/releases.json')
     (destination / 'data/catalog.json').write_bytes(snapshot)
     (destination / 'public/catalog.json').write_bytes(snapshot)
-    files = ['app.js', 'size-picker.js', 'size-picker.css', 'hero-3d.js', 'motion.js', 'style.css', 'editorial.css', 'pages.css']
+    files = ['app.js', 'radar.js', 'size-picker.js', 'size-picker.css', 'hero-3d.js', 'motion.js', 'style.css', 'editorial.css', 'pages.css']
     shutil.copy2(ROOT / 'web/index.html', destination / 'web/index.html')
     for name in files:
         shutil.copy2(ROOT / 'web' / name, destination / 'public' / name)
+    shutil.copytree(ROOT/'web/vendor/vision', destination/'public/vendor/vision', dirs_exist_ok=True)
     assets = ['radar.svg', 'social-card.png', 'fonts.css', 'gsap.min.js', 'ScrollTrigger.min.js', 'lenis.min.js', 'lenis.css', 'LENIS-LICENSE.txt']
     assets += [p.name for p in (ROOT / 'web/vendor').glob('*-OFL.txt')]
     assets += [p.name for p in (ROOT / 'web/vendor').glob('*.woff2')]
@@ -35,7 +41,7 @@ def build():
         'version': 2,
         'framework': None,
         'env': {'PREVIEW_HOST': 'sole-radar-preview.vercel.app'},
-        'functions': {'api/index.py': {'includeFiles': '{web/**,content/**,data/catalog.json}', 'maxDuration': 30}},
+        'functions': {'api/index.py': {'includeFiles': '{web/**,content/**,data/catalog.json,data/radar/releases.json}', 'maxDuration': 30}},
         'routes': [
             {'src': '/(.*)', 'headers': {'X-Robots-Tag': 'noindex, nofollow', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer'}, 'continue': True},
             {'src': '/vendor/(.*)', 'headers': {'Cache-Control': 'public, max-age=86400'}, 'continue': True},

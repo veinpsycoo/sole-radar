@@ -62,22 +62,43 @@ function suggestions() {
   }
   $('model-options').innerHTML=[...names].sort((a,b)=>a.localeCompare(b,'tr')).map(n=>`<option value="${esc(n)}"></option>`).join('');
 }
+let shippingRules=[];
+function totalPrice(o) {
+  const rule=shippingRules.find(r=>r.sourceId===o.sourceId && Date.now()-Date.parse(r.checkedAt)<86400000 && Date.parse(r.checkedAt)<=Date.now()+300000);
+  if(!rule)return null;
+  if(o.price>=rule.threshold)return o.price;
+  return Number.isSafeInteger(rule.fee)?o.price+rule.fee:null;
+}
 function standings(products) {
-  return products.flatMap(p=>p.offers.map(o=>({p,o,key:rowKey(p,o),price:o.price}))).sort((a,b)=>a.price-b.price||a.p.name.localeCompare(b.p.name,'tr')||a.key.localeCompare(b.key));
+  const total=$('with-shipping').checked;
+  return products.flatMap(p=>p.offers.flatMap(o=>{
+    const variants=o.variants.map(v=>({size:shoeSize(v.size),price:total?totalPrice({...o,price:v.price}):v.price})).filter(v=>Number.isSafeInteger(v.price));
+    if(!variants.length)return [];
+    const price=Math.min(...variants.map(v=>v.price));
+    return [{p,o,key:rowKey(p,o),price,sizes:[...new Set(variants.filter(v=>v.price===price).map(v=>v.size))]}];
+  })).sort((a,b)=>a.price-b.price||a.p.name.localeCompare(b.p.name,'tr')||a.key.localeCompare(b.key));
 }
 function rankRow(r,i,previous) {
   const {p,o,key,price}=r, prior=previous?.get(key), delta=prior?prior.i-i:0;
-  const sizes=[...new Set(o.variants.filter(v=>v.price===price).map(v=>shoeSize(v.size).replace('.',',')))].join(' · ');
+  const sizes=r.sizes.map(v=>v.replace('.',',')).join(' · ');
   const change=delta?`<small class="movement">${delta>0?'▲':'▼'} ${Math.abs(delta)} sıra</small>`:'';
-  const cut=prior&&prior.price>price?`<small class="price-cut">↓ ${currency.format((prior.price-price)/100)}</small>`:'';
+  const eligible=r.sizes;
+  const productMode=!$('with-shipping').checked;
+  const comparisons=eligible.map(size=>{
+    const prices=p.offers.filter(other=>other.sourceId!==o.sourceId).flatMap(other=>other.variants.filter(v=>shoeSize(v.size)===size).map(v=>productMode?v.price:totalPrice({...other,price:v.price}))).filter(Number.isSafeInteger);
+    return {size,diff:prices.length?Math.min(...prices)-price:0};
+  }).filter(c=>c.diff>0).sort((a,b)=>b.diff-a.diff);
+  const saving=comparisons[0];
+  const gap=saving?`<span class="radar-gap">EU ${esc(saving.size.replace('.',','))} · ikinci mağazadan ${currency.format(saving.diff/100)} ucuz</span>`:'';
+  const cut=prior&&prior.price>price&&eligible.some(size=>prior.sizes?.includes(size))?`<small class="price-cut">↓ ${currency.format((prior.price-price)/100)}</small>`:'';
   const brand=p.brand || '', name=p.name.toLocaleUpperCase('tr').startsWith(brand.toLocaleUpperCase('tr')+' ')?p.name.slice(brand.length).trim():p.name;
   const current=verified.has(key), stamp=date(o.checkedAt);
-  return `<a class="timing-row pos-${Math.min(i+1,4)}" data-key="${esc(key)}" href="${esc(safe(o.url))}" target="_blank" rel="noopener noreferrer" aria-label="${i+1}. sıra · ${esc(p.name)} · ${currency.format(price/100)} · ${esc(sourceName(o.sourceId))} mağazasında aç"><span class="timing-thumb">${safe(p.image)?`<img src="${esc(safe(p.image))}" alt="" loading="lazy" width="92" height="82">`:''}<span class="position"><b>${String(i+1).padStart(2,'0')}</b></span></span><span class="timing-product"><small>${esc(brand)}${i===0?' <em>LİDER</em>':''}</small><strong>${esc(name)}</strong><span class="row-size">EU ${esc(sizes)}</span></span><span class="timing-price"><b>${currency.format(price/100)}</b>${cut}${change}</span><span class="row-foot"><span class="store-name">${esc(sourceName(o.sourceId))} <span aria-hidden="true">↗</span></span><time class="${current?'checked':'snapshot'}" datetime="${esc(o.checkedAt)}" title="${esc(stamp)} TSİ">${current?'Kontrol':'Tarama'} · ${esc(stamp)}</time></span></a>`;
+  return `<a class="timing-row pos-${Math.min(i+1,4)}" data-key="${esc(key)}" href="${esc(safe(o.url))}" target="_blank" rel="noopener noreferrer" aria-label="${i+1}. sıra · ${esc(p.name)} · ${currency.format(price/100)} · ${esc(sourceName(o.sourceId))} mağazasında aç"><span class="timing-thumb">${safe(p.image)?`<img src="${esc(safe(p.image))}" alt="" loading="lazy" width="92" height="82">`:''}<span class="position"><b>${String(i+1).padStart(2,'0')}</b></span></span><span class="timing-product"><small>${esc(brand)}${i===0?' <em>LİDER</em>':''}</small><strong>${esc(name)}</strong><span class="row-size">EU ${esc(sizes)}</span>${gap}</span><span class="timing-price"><b>${currency.format(price/100)}</b>${cut}${change}${$('with-shipping').checked?'<small>Kargo dahil</small>':''}</span><span class="row-foot"><span class="store-name">${esc(sourceName(o.sourceId))} <span aria-hidden="true">↗</span></span><time class="${current?'checked':'snapshot'}" datetime="${esc(o.checkedAt)}" title="${esc(stamp)} TSİ">${current?'Kontrol':'Tarama'} · ${esc(stamp)}</time></span></a>`;
 }
 function draw(previous) {
   const grid=$('grid'), focusKey=document.activeElement?.closest?.('.timing-row')?.dataset.key;
   const old=previous?new Map([...grid.querySelectorAll('.timing-row')].map(el=>[el.dataset.key,el.getBoundingClientRect().top])):null;
-  grid.innerHTML=board.slice(0,shown).map((r,i)=>rankRow(r,i,previous)).join('') || `<div class="empty"><strong>${selectedSizes().length?'Bu seçimde stoklu teklif bulunamadı.':'Sıralamayı görmek için numaranı seç.'}</strong></div>`;
+  grid.innerHTML=board.slice(0,shown).map((r,i)=>`<div class="radar-offer">${rankRow(r,i,previous)}<a class="history-link" href="/urun/${esc(r.p.id)}/?${selectedSizes().map(s=>'beden='+encodeURIComponent(s)).join('&amp;')}">Fiyat geçmişi ↗</a></div>`).join('') || `<div class="empty"><strong>${selectedSizes().length?'Bu seçimde stoklu teklif bulunamadı.':'Sıralamayı görmek için numaranı seç.'}</strong></div>`;
   for(const row of grid.querySelectorAll('.timing-row')){
     if(row.dataset.key===focusKey)row.focus({preventScroll:true});
     if(old?.has(row.dataset.key)&&!matchMedia('(prefers-reduced-motion: reduce)').matches){
@@ -86,11 +107,11 @@ function draw(previous) {
     }
   }
   grid.setAttribute('aria-busy','false');
-  $('result-count').textContent=selectedSizes().length?`${count(board.length)} teklif · En ucuzdan pahalıya · ${count(Math.min(shown,board.length))} gösteriliyor`:'Sonuçlar için numaranı seç';
+  $('result-count').textContent=selectedSizes().length?`${count(board.length)} teklif · ${$('with-shipping').checked?'Kargosu doğrulanan mağazalar':'En ucuzdan pahalıya'} · ${count(Math.min(shown,board.length))} gösteriliyor`:'Sonuçlar için numaranı seç';
   $('more').hidden=shown>=board.length;
 }
 function filter(updateURL=true, keep=false) {
-  const previous=keep?new Map(board.map((r,i)=>[r.key,{i,price:r.price}])):null;
+  const previous=keep?new Map(board.map((r,i)=>[r.key,{i,price:r.price,sizes:r.sizes}])):null;
   if(!keep)shown=36;
   matches=selectProducts();board=standings(matches);
   if(!keep)candidates.clear();
@@ -100,8 +121,11 @@ function filter(updateURL=true, keep=false) {
     const params=new URLSearchParams();
     selectedSizes().forEach(size=>params.append('size',size));
     for(const id of ['brand','model'])if($(id).value)params.set(id,$(id).value);
+    if($('with-shipping').checked)params.set('kargo','1');
     history.replaceState(null,'',location.pathname+(params.size?'?'+params:'')+location.hash);
+    $('save-status').textContent='';
   }
+  savedMovement();
 }
 function applyQuote(product,offer,q) {
   const at=Date.parse(q.checkedAt);
@@ -127,7 +151,12 @@ async function recheck(){
         if(res.ok && applyQuote(product,offer,await res.json()))changed=true;
       }catch{/* Keep the dated catalog offer when its retailer cannot be reached. */}
     }));
-    if(changed){filter(false,true);$('timing-status').textContent='Görünen teklifler sırayla kontrol ediliyor · Son doğrulama '+date(new Date())+' TSİ';}
+    if(changed){
+      const former=board[0];filter(false,true);
+      const sourceOffer=former&&data.products.find(p=>p.id===former.p.id)?.offers.find(o=>o.url===former.o.url);
+      const gone=sourceOffer && verified.has(former.key) && Date.parse(sourceOffer.checkedAt)>Date.parse(former.o.checkedAt) && !sourceOffer.variants.some(v=>v.available&&selectedSizes().includes(shoeSize(v.size)));
+      $('timing-status').textContent=(gone?'Önceki liderin seçili numaralarda stoğu tükendi. ':'')+'Son mağaza doğrulaması '+date(new Date())+' TSİ';
+    }
     else if(targets.length)$('timing-status').textContent='Yeni mağaza verisi doğrulanamadı · Satırlarda son kontrol saati gösteriliyor.';
   }finally{checking=false;}
 }
@@ -142,6 +171,7 @@ async function load() {
     for(const p of next.products)for(const o of p.offers){const newer=oldOffers.get(rowKey(p,o));if(newer && Date.parse(newer.checkedAt)>Date.parse(o.checkedAt))Object.assign(o,{variants:newer.variants,checkedAt:newer.checkedAt});else verified.delete(rowKey(p,o));}
     data=next;loadFilters();
     const params=new URLSearchParams(location.search);
+    $('with-shipping').checked=params.get('kargo')==='1';
     sizePicker.set($('size-picker'),[...params.getAll('size'),...params.getAll('size2')]);
     brandMenu();
     if(params.has('brand')) $('brand').value=params.get('brand');
@@ -181,12 +211,42 @@ $('filters').addEventListener('submit',e=>e.preventDefault());
 let typing;
 $('filters').addEventListener('input',e=>{clearTimeout(typing);if(e.target.id==='brand')$('model').value='';const update=()=>{if(e.target.name==='size')brandMenu();suggestions();filter();recheck();};if(e.target.id==='model')typing=setTimeout(update,160);else update();});
 $('filters').addEventListener('reset',()=>setTimeout(()=>{brandMenu();suggestions();filter();},0));
-$('more').addEventListener('click',()=>{const previous=shown;shown+=36;draw();const next=$('grid').children[previous];next?.focus();});
+$('more').addEventListener('click',()=>{const previous=shown;shown+=36;draw();const next=$('grid').children[previous];next?.querySelector('a')?.focus();});
 $('refresh').addEventListener('click',async()=>{
   $('refresh').disabled=true;
   try {const r=await fetch('/api/refresh',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});if(!r.ok && r.status!==409) throw new Error();polling=true;checkStatus();}
   catch {$('refresh').disabled=false;$('refresh-status').textContent='Tarama başlatılamadı. Tekrar deneyebilirsin.';}
 });
-load();checkStatus();
+function snapshot(r){return r && {key:r.key,price:r.price,sizes:r.sizes,at:r.o.checkedAt};}
+function savedMovement(){
+  try{
+    if(!savedRankings().includes(location.search))return;
+    const prev=JSON.parse(localStorage.getItem('radar-leaders')||'{}')[location.search],leader=board[0];
+    if(!prev||!leader||Date.parse(prev.at)>=Date.parse(leader.o.checkedAt))return;
+    if(prev.key===leader.key&&leader.price<prev.price&&leader.sizes.some(s=>prev.sizes.includes(s)))$('save-status').textContent='Kaydından beri aynı numarada liderin fiyatı düştü.';
+    else if(prev.key!==leader.key)$('save-status').textContent='Kaydından beri bu sıralamanın lideri değişti.';
+  }catch{/* Device storage is optional. */}
+}
+function savedRankings(){
+  try {const items=JSON.parse(localStorage.getItem('sole-rankings')||'[]');return Array.isArray(items)?items.filter(x=>typeof x==='string'&&x.startsWith('?')&&x.length<600).slice(0,12):[];} catch{return [];}
+}
+function drawSaved(){
+  const list=$('saved-rankings');list.replaceChildren();
+  for(const query of savedRankings()){
+    const q=new URLSearchParams(query), title=[q.get('brand'),q.get('model'),q.getAll('size').join(' / '),q.has('kargo')?'Kargo dahil':''].filter(Boolean).join(' · ');
+    const link=document.createElement('a');link.href=location.pathname+query;link.textContent=title;
+    const remove=document.createElement('button');remove.type='button';remove.textContent='×';remove.setAttribute('aria-label',title+' kaydını kaldır');
+    remove.onclick=()=>writeSaved(savedRankings().filter(x=>x!==query));list.append(link,remove);
+  }
+}
+function writeSaved(items){try{localStorage.setItem('sole-rankings',JSON.stringify(items));drawSaved();return true;}catch{$('save-status').textContent='Bu cihazda kayıt yapılamadı.';return false;}}
+$('save-ranking').onclick=()=>{if(!selectedSizes().length){$('save-status').textContent='Önce numaranı seç.';return;}filter();const q=location.search;try{const baselines=JSON.parse(localStorage.getItem('radar-leaders')||'{}');baselines[q]=snapshot(board[0]);localStorage.setItem('radar-leaders',JSON.stringify(Object.fromEntries(Object.entries(baselines).filter(([k])=>k===q||savedRankings().includes(k)))));}catch{}if(writeSaved([q,...savedRankings().filter(x=>x!==q)].slice(0,12)))$('save-status').textContent='Bu cihazda kaydedildi.';};
+$('with-shipping').onchange=()=>filter();
+async function startRadar(){
+  drawSaved();
+  try{const res=await fetch(new URL('radar/shipping.json',document.baseURI),{signal:AbortSignal.timeout(4500)});if(res.ok)shippingRules=await res.json();}catch{/* No confirmed shipping terms. */}
+  await load();checkStatus();
+}
+startRadar();
 setInterval(recheck,15000);setInterval(()=>{if(!document.hidden)checkStatus();},60000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){checkStatus();recheck();}});

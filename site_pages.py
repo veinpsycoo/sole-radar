@@ -108,6 +108,12 @@ def product_cards(products, data):
     return '<div class="reading-grid">' + ''.join(cards) + '</div>'
 
 
+MODEL_PAGES = {
+    '/model/new-balance-9060/': ('NEW BALANCE', '9060', re.compile(r'(?<!\d)9060(?!\d)', re.I)),
+    '/model/salomon-xt-6/': ('SALOMON', 'XT-6', re.compile(r'\bXT[ -]?6\b', re.I)),
+}
+
+
 def homepage():
     html = (ROOT / 'web/index.html').read_text(encoding='utf-8')
     html = re.sub(r'<meta name="description"[^>]+>', '', html)
@@ -133,9 +139,9 @@ def resolve(path, query=''):
     if path in ('/yontem/', '/hakkimizda/', '/gizlilik/'):
         titles = {'/yontem/': 'Fiyatları nasıl karşılaştırıyoruz?', '/hakkimizda/': 'SOLE RADAR hakkında', '/gizlilik/': 'Gizlilik ve yerel tercihler'}
         texts = {
-            '/yontem/': '<p class="lead">SOLE RADAR, tanımlı mağazaların kamuya açık ürün sayfalarındaki fiyat ve stokları karşılaştırır. Ürün satmaz, ödeme almaz ve stok ayırmaz.</p><h2>Eşleştirme ve beden</h2><p>Tanınan tam model ve renk kodları eşleştirilir. Kodu belirsiz kayıtlar ayrı tutulur. Beden seçildiğinde yalnızca o beden etiketiyle doğrulanan stoklu varyantların fiyatları kullanılır. Ana numara seçimi yetişkin EU 35–50 aralığıyla sınırlıdır; yarım ve kesirli numaralar korunur. Beden ölçü sistemleri arasında tahmini dönüşüm yapılmaz.</p><h2>Güncellik ve kapsam</h2><p>Her teklifin kontrol tarihi görünür. 24 saati geçen veya kaynağı başarısız olan teklifler aktif sonuçlardan çıkarılır. Kısmi tarama, kaynağın tüm ürünlerinin okunamadığını belirtir. Kargo ve koşullu sepet kampanyaları fiyatlara dahil değildir.</p><h2>Orijinallik ve bağımsızlık</h2><p>Mağaza adreslerini sınırlandırıyoruz; fiziksel ürün incelemesi veya orijinallik sertifikası sunmuyoruz. Satın almadan önce satıcıyı, ürün kodunu, bedeni ve toplam tutarı mağazada doğrula. Listelenen mağazaların resmî temsilcisi değiliz.</p><h2>Düzeltme</h2><p>Mağazanın sayfasıyla bir fark gördüğünde son kontrol zamanını karşılaştır. Mağazada güncel bilgi esas alınır. Kaynak hataları tarama raporunda görünür; başarısız kaynağın teklifi güncelmiş gibi gösterilmez.</p>',
+            '/yontem/': '<p class="lead">SOLE RADAR, tanımlı mağazaların kamuya açık ürün sayfalarındaki fiyat ve stokları karşılaştırır. Ürün satmaz, ödeme almaz ve stok ayırmaz.</p><h2>Eşleştirme ve beden</h2><p>Tanınan tam model ve renk kodları eşleştirilir. Kodu belirsiz kayıtlar ayrı tutulur. Beden seçildiğinde yalnızca o beden etiketiyle doğrulanan stoklu varyantların fiyatları kullanılır. Ana numara seçimi yetişkin EU 35–50 aralığıyla sınırlıdır; yarım ve kesirli numaralar korunur. Beden ölçü sistemleri arasında tahmini dönüşüm yapılmaz.</p><h2>Güncellik ve kapsam</h2><p>Her teklifin kontrol tarihi görünür. 24 saati geçen veya kaynağı başarısız olan teklifler aktif sonuçlardan çıkarılır. Kısmi tarama, kaynağın tüm ürünlerinin okunamadığını belirtir. Varsayılan sıralama ürün fiyatınadır. Kargo dahil seçiminde yalnız geçerli teslimat kuralı doğrulanan mağazalar karşılaştırılır. Üyelik ve koşullu sepet kampanyaları dahil değildir.</p><h2>Orijinallik ve bağımsızlık</h2><p>Mağaza adreslerini sınırlandırıyoruz; fiziksel ürün incelemesi veya orijinallik sertifikası sunmuyoruz. Satın almadan önce satıcıyı, ürün kodunu, bedeni ve toplam tutarı mağazada doğrula. Listelenen mağazaların resmî temsilcisi değiliz.</p><h2>Düzeltme</h2><p>Mağazanın sayfasıyla bir fark gördüğünde son kontrol zamanını karşılaştır. Mağazada güncel bilgi esas alınır. Kaynak hataları tarama raporunda görünür; başarısız kaynağın teklifi güncelmiş gibi gösterilmez.</p>',
             '/hakkimizda/': '<p class="lead">SOLE RADAR, Türkiye’deki tanımlı ayakkabı mağazalarını tek bir arama deneyiminde buluşturan bağımsız bir fiyat karşılaştırma projesidir.</p><h2>Ne yapıyoruz?</h2><p>Model, renk ve bedene göre teklifleri görünür kılıyor; fiyatın nereden ve ne zaman alındığını gösteriyoruz. Satış işlemi seçtiğin mağazada gerçekleşir. Sitedeki rehberler karşılaştırma sürecini açıklar; fiziksel olarak denemediğimiz ürünler için deneyim veya uzmanlık iddiasında bulunmayız.</p><p><a href="/yontem/">Veri yöntemimizi ve sınırlarını incele ↗</a></p>',
-            '/gizlilik/': '<p class="lead">Mevcut sürüm üyelik veya ödeme bilgisi istemez. Arama ve filtreleme tarayıcında yapılır.</p><h2>Yerel kayıt</h2><p>Hareketleri azaltma tercihi tarayıcının yerel depolamasında sole-reduced-motion anahtarıyla saklanır. Tarayıcı site verilerini temizlediğinde bu tercih silinir. Filtreler sayfa bağlantısında görünür ve bağlantıyı paylaştığında alıcı tarafından okunabilir.</p><h2>Dış mağazalar ve görseller</h2><p>Ürün görselleri mağazaların sunucularından yüklenebilir; bu istekler IP adresi ve tarayıcıya ait standart bağlantı bilgilerini ilgili sunucuya iletir. Mağaza bağlantısına geçtiğinde o mağazanın gizlilik politikası geçerlidir. Uygulama kodu reklam takip aracı veya analiz çerezi eklemez.</p><h2>Yayın altyapısı</h2><p>Web sitesi GitHub Pages üzerinde, alternatif önizleme ve katalog uç noktası Vercel üzerinde barındırılır. Bu sağlayıcılar bağlantı ve güvenlik günlükleri tutabilir. Kişisel veri veya gizlilik soruların için aşağıdaki destek adresine yazabilirsin. Bu açıklama web sitesi ve SOLE RADAR mobil uygulaması için geçerlidir.</p>'}
+            '/gizlilik/': '<p class="lead">Mevcut sürüm üyelik veya ödeme bilgisi istemez. Arama ve filtreleme tarayıcında yapılır.</p><h2>Kaydedilen seçimler ve alarmlar</h2><p>Web sıralamaları tarayıcında, mobil sıralamalar cihazında saklanır. Fotoğrafla arama görseli cihazında işler. Mobil alarm açıldığında Expo bildirim anahtarı, ürün, numara ve isteğe bağlı hedef fiyat Cloudflare üzerindeki alarm servisine gönderilir. Expo, Apple veya Google bildirimi cihazına iletir. Alarmı kaldırabilir veya 90 günlük saklama süresinin dolmasını bekleyebilirsin.</p><h2>Yerel kayıt</h2><p>Hareketleri azaltma tercihi tarayıcının yerel depolamasında sole-reduced-motion anahtarıyla saklanır. Tarayıcı site verilerini temizlediğinde bu tercih silinir. Filtreler sayfa bağlantısında görünür ve bağlantıyı paylaştığında alıcı tarafından okunabilir.</p><h2>Dış mağazalar ve görseller</h2><p>Ürün görselleri mağazaların sunucularından yüklenebilir; bu istekler IP adresi ve tarayıcıya ait standart bağlantı bilgilerini ilgili sunucuya iletir. Mağaza bağlantısına geçtiğinde o mağazanın gizlilik politikası geçerlidir. Uygulama kodu reklam takip aracı veya analiz çerezi eklemez.</p><h2>Yayın altyapısı</h2><p>Web sitesi GitHub Pages üzerinde, alternatif önizleme ve katalog uç noktası Vercel üzerinde barındırılır. Bu sağlayıcılar bağlantı ve güvenlik günlükleri tutabilir. Kişisel veri veya gizlilik soruların için aşağıdaki destek adresine yazabilirsin. Bu açıklama web sitesi ve SOLE RADAR mobil uygulaması için geçerlidir.</p>'}
         texts[path] += '<h2>İşletmeci ve destek</h2><p>Muhammet Çay · <a href="mailto:veinpsyco@gmail.com">veinpsyco@gmail.com</a></p>'
         return 200, page(titles[path], titles[path] + ' Kaynaklar, güncellik ve sınırlar.', path, '<article class="prose"><h1>' + titles[path] + '</h1>' + texts[path] + '</article>'), HTML
     if path == '/robots.txt':
@@ -144,12 +150,38 @@ def resolve(path, query=''):
     if path == '/llms.txt':
         text = '# SOLE RADAR\n\n> Türkiye’deki tanımlı ayakkabı mağazalarının fiyat ve stok karşılaştırması. Fiziksel ürün orijinalliği doğrulanmaz.\n\n## Yöntem\n- [Veri yöntemimiz](' + site_url() + '/yontem/): Eşleştirme, 24 saatlik güncellik sınırı, fiyat kapsamı.\n- [Radar rehberi](' + site_url() + '/blog/): Alışveriş ve beden rehberleri.\n\nFiyatları aktarırken mağazayı, bedeni ve kontrol tarihini belirtin. Eski teklifleri güncel fiyat olarak alıntılamayın.\n'
         return 200, text, 'text/plain; charset=utf-8'
+    if re.fullmatch(r'/radar/(?:[a-f0-9]|shipping|releases)\.json', path):
+        file = CATALOG.parent / path.lstrip('/')
+        return (200, file.read_text(encoding='utf-8'), 'application/json') if file.is_file() else (404, '{}', 'application/json')
+    if path == '/foto/':
+        body = '<h1>Fotoğrafla model bul</h1><p class="lead">Tek ayakkabının yandan çekilmiş fotoğrafını seç. Pilot katalogdaki benzer modelleri cihazında karşılaştırır. Fotoğrafın yüklenmez.</p><label>Ayakkabı fotoğrafı <input id="photo" type="file" accept="image/jpeg,image/png,image/webp"></label><p id="photo-status" role="status"></p><ul id="photo-results"></ul><script defer src="/vendor/vision/ort.wasm.min.js"></script><script defer src="/vendor/vision/photo.js"></script>'
+        return 200, page('Fotoğrafla sneaker modeli bul', 'Fotoğrafına benzeyen sneaker modellerini keşfet.', path, body), HTML
+    if path == '/takvim/':
+        from releases import URL
+        file = CATALOG.parent/'radar/releases.json'
+        feed = json.loads(file.read_text(encoding='utf-8')) if file.is_file() else {}
+        now = datetime.now(timezone.utc)
+        recent = feed.get('checkedAt') and now - datetime.fromisoformat(feed['checkedAt']) < timedelta(days=2)
+        items = [e for e in feed.get('items', []) if recent and datetime.fromisoformat(e['start'].replace('Z','+00:00')) > now]
+        cards = ''.join(f'<li data-release="{escape(e["start"])}"><time>{stamp(e["start"])}</time> · <a href="{escape(e["url"])}">{escape(e["name"])}</a> · {escape(e["code"])}</li>' for e in items)
+        body = '<h1>Türkiye sneaker çıkış takvimi</h1><p class="lead">Nike SNKRS Türkiye · Türkiye saati</p><ul data-calendar-checked="'+escape(feed.get('checkedAt',''))+'">'+cards+'</ul><p id="calendar-empty"'+(' hidden' if cards else '')+'>Doğrulanmış yaklaşan çıkış bulunmuyor.</p><p><a href="'+URL+'">Resmî takvimi aç ↗</a></p><script defer src="/radar.js"></script>'
+        return 200, page('Türkiye sneaker çıkış takvimi', 'Türkiye satış noktası doğrulanmış sneaker çıkışları.', path, body, index=bool(items)), HTML
+    if path in MODEL_PAGES:
+        brand, label, pattern = MODEL_PAGES[path]
+        data = catalog()
+        matches = [p for p in data['products'] if p['brand'].upper() == brand and pattern.search(p['name']) and fresh_offers(p, data)]
+        title = f'{brand.title()} {label} fiyatları ve stoklu numaralar'
+        body = f'<h1>{escape(title)}</h1><p class="lead"><a href="/?brand={brand.replace(" ", "%20")}&amp;model={label}#catalog">Numaranı seç ve teklifleri sırala ↗</a></p>'
+        body += f'<section id="family" data-brand="{escape(brand)}" data-model="{escape(label)}"><label>Renk <select aria-label="Renk"><option>Tüm renkler</option></select></label> <label>Numara <select aria-label="Numara"><option>Tüm numaralar</option></select></label><p role="status"></p><ol></ol></section><script defer src="/radar.js"></script>'
+        body += product_cards(matches, data) if matches else '<p>Bu model için güncel teklif bulunmuyor.</p>'
+        return 200, page(title, title, path, body, index=bool(matches)), HTML
     if path not in ('/modeller/', '/sitemap.xml') and not re.fullmatch(r'/urun/[a-f0-9]{20}/', path):
         return None
     data = catalog()
     if path == '/sitemap.xml':
         paths = ['/', '/blog/', '/modeller/', '/yontem/', '/hakkimizda/'] + ['/blog/' + a['slug'] + '/' for a in ARTICLES]
         # Only comparison pages with multiple current stores are search-index candidates.
+        paths += [path for path,(brand, _, pattern) in MODEL_PAGES.items() if any(p['brand'].upper() == brand and pattern.search(p['name']) and fresh_offers(p, data) for p in data['products'])]
         paths += ['/urun/' + p['id'] + '/' for p in data['products'] if len({o['sourceId'] for o in fresh_offers(p, data)}) >= 2]
         body = '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + (''.join('<url><loc>' + escape(site_url() + p) + '</loc></url>' for p in paths) if site_url() else '') + '</urlset>'
         return 200, body, 'application/xml; charset=utf-8'
@@ -183,6 +215,7 @@ def resolve(path, query=''):
         offers = [o | {'price': min(v['price'] for v in o['variants'])} for o in offers if o['variants']]
         offers.sort(key=lambda o: o['price'])
     body = f'<a href="/modeller/">← Modeller</a><div class="product-detail"><img src="{escape(safe_url(p["image"]))}" alt="{escape(p["name"])}" width="640" height="480"><div><p class="eyebrow">{escape(p["brand"])}</p><h1>{escape(p["name"])}</h1><p>{escape(p.get("color", ""))}</p><p>Ürün kodu: {escape(p.get("code") or "Mağazaya özel kayıt")}</p><p class="lead">{money(offers[0]["price"]) + "’den başlayan" if offers else "Güncel teklif bulunmuyor."}</p><p>Fiyatlar bedene göre değişebilir. Kargo ve koşullu kampanyalar dahil değildir.</p></div></div><h2>Mağazalar, bedenler ve fiyatlar</h2>'
+    body += f'<section id="price-history" data-product="{escape(p["id"])}"><h2>Numarana göre fiyat geçmişi</h2><div role="status">Gözlemler yükleniyor…</div></section><script defer src="/radar.js"></script>'
     choices = list(dict.fromkeys(sizes + selected_sizes))
     checks = ''.join(f'<label><input type="checkbox" name="beden" value="{escape(size)}"{" checked" if size in selected_sizes else ""}><span>{escape(size.replace(".", ","))}</span></label>' for size in choices)
     body += '<form class="detail-size" method="get"><details class="size-picker" data-size-picker><summary aria-label="Ayak numaralarını seç"><span data-size-label>Numaranı seç</span></summary><div class="size-picker-panel"><div class="size-options" role="group" aria-label="En fazla üç ayak numarası seç">' + checks + '</div><p data-size-count role="status">En fazla üç numara seçebilirsin.</p></div></details><button type="submit">Uygula</button></form>'

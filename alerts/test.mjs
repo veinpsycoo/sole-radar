@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {observe,validWatch,Device} from './worker.mjs';
+const now=Date.now(),stamp=new Date(now).toISOString(),w={id:'a'.repeat(20),sizes:['44.5','45'],target:300};
+assert(validWatch(w));assert(!validWatch({...w,sizes:['51']}));assert(!validWatch({...w,target:2.2}));
+assert.equal(observe({days:{}},w,now),null);
+assert.equal(observe({completeAt:stamp},w,now),false);
+assert.equal(observe({completeAt:new Date(now-90000000).toISOString()},w,now),null);
+const available={current:{'45':[[250,stamp]],'44.5':[[100,new Date(now-90000000).toISOString()]]},completeAt:stamp};
+assert.deepEqual(observe(available,w,now),{size:'45',price:250});
+assert.equal(observe({current:{'43':[[250,stamp]]}},w,now),null);
+let state={expires:now+9000000,token:'fixture',watches:{one:{...w,active:true}}};
+const db={get:async()=>structuredClone(state),put:async(_,v)=>{state=structuredClone(v);},setAlarm:async()=>{}};
+const device=new Device({storage:db,blockConcurrencyWhile:f=>f()});
+device.lookup=async()=>false;await device.alarm();assert.equal(state.watches.one.active,false);
+device.lookup=async()=>({size:'45',price:250});let sent=0;
+globalThis.fetch=async()=>{sent++;throw Error('ambiguous delivery')};
+await assert.rejects(device.alarm());await device.alarm();assert.equal(sent,1);
+console.log('Size, freshness, verified restock and replay checks passed.');

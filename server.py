@@ -50,7 +50,8 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header('X-Content-Type-Options', 'nosniff')
         self.send_header('Referrer-Policy', 'no-referrer')
         hashes = ' '.join("'sha256-" + base64.b64encode(hashlib.sha256(s).digest()).decode() + "'" for s in re.findall(rb'<script type="application/ld\+json">(.*?)</script>', content))
-        self.send_header('Content-Security-Policy', f"default-src 'self'; img-src 'self' https: blob:; script-src 'self' {hashes}; style-src 'self'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'")
+        wasm = "'wasm-unsafe-eval'" if urlsplit(self.path).path == '/foto/' else ''
+        self.send_header('Content-Security-Policy', f"default-src 'self'; img-src 'self' https: blob:; script-src 'self' {wasm} {hashes}; style-src 'self'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'")
         self.end_headers()
         self.wfile.write(content)
 
@@ -69,9 +70,13 @@ class Handler(BaseHTTPRequestHandler):
             code, body, mime = result
             return self.send(code, body.encode('utf-8'), mime)
         files = {'/hero-3d.js': ('hero-3d.js', 'text/javascript; charset=utf-8'), '/': ('index.html', 'text/html; charset=utf-8'), '/app.js': ('app.js', 'text/javascript; charset=utf-8'), '/motion.js': ('motion.js', 'text/javascript; charset=utf-8'), '/style.css': ('style.css', 'text/css; charset=utf-8'), '/editorial.css': ('editorial.css', 'text/css; charset=utf-8')}
+        files['/radar.js'] = ('radar.js', 'text/javascript; charset=utf-8')
         files['/pages.css'] = ('pages.css', 'text/css; charset=utf-8')
         files['/size-picker.js'] = ('size-picker.js', 'text/javascript; charset=utf-8')
         files['/size-picker.css'] = ('size-picker.css', 'text/css; charset=utf-8')
+        for asset in (ROOT/'web/vendor/vision').glob('*'):
+            if asset.is_file() and not asset.is_symlink():
+                files['/vendor/vision/'+asset.name] = ('vendor/vision/'+asset.name, mimetypes.guess_type(asset.name)[0] or 'application/octet-stream')
         for asset in (ROOT / 'web' / 'vendor').iterdir():
             if asset.is_file() and not asset.is_symlink():
                 files['/vendor/' + asset.name] = ('vendor/' + asset.name, mimetypes.guess_type(asset.name)[0] or 'application/octet-stream')

@@ -66,3 +66,8 @@ Son ölçümler ve sınırlar: `VERIFICATION.md`. Bir denetim skoru, arama sıra
 Windows görevi: `SoleRadar-CatalogPreview`, 6 saat aralık, aynı anda tek çalışma, 4 saat üst süre. İlk çalışma 7 Kasım 2026 08:18 TSİ'de başlatıldı; tamamlandığı henüz doğrulanmadı. `data/worker-status.json` çalışma ve yayın sonucunu, `data/scheduled-refresh*.log` günlükleri gösterir. Sonraki çalışma `Get-ScheduledTaskInfo -TaskName SoleRadar-CatalogPreview` ile görülebilir. Bilgisayar kapalı veya oturum kapalıysa sürekli yenileme garanti edilmez.
 
 Yayıncı, Vercel'in düz URL ve yapılandırılmış çıktı biçimlerini kabul eder; hedefi ayrıca `inspect --json` ile doğrular. Yayınlanan kataloğun SHA-256 özeti karşılaştırılır. Boş/başarısız katalog ve yayın hataları başarı diye kaydedilmez.
+
+## Beden bazlı takip
+Web ve mobilde sıralamalar cihaza kaydedilebilir. Fiyat farkı aynı ürün, renk, numara ve farklı mağaza için hesaplanır. Kargo dahil sıralaması, mağazanın doğrulanmış Türkiye teslimat koşulunun desteklediği teklifler içindir. Katalog taraması günlük numara bazlı asgari fiyatları son 30 gün için data/radar altında tutar. GitHub Actions bu gözlemleri taramalar arasında geri yükler.
+Fotoğraf araması yerel ONNX Runtime ile tarayıcıda çalışır. Pilot referans setini güncellemek için Pillow, numpy, onnxruntime bulunan geliştirme ortamında python build_photo_index.py çalıştırılır. /takvim/ Nike SNKRS Türkiye çıkışlarını, /model/ altında 9060 ve XT-6 sayfaları doğrulanan mağaza tekliflerini gösterir.
+Mobil alarm servisi alerts içinde bir Cloudflare Worker'dır. Anonim cihaz kaydı, 90 günlük takip, saatlik kontrol ve Expo push teslimi kullanır. Expo proje kimliği ile APNs/FCM kimlik bilgileri imzalı cihaz testi için gerekir.

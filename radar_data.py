@@ -1,0 +1,103 @@
+"""Per-size price observations shared by the site, app and notification service."""
+import json
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+import re
+
+from site_pages import catalog, fresh_offers, shoe_size
+from collector import CATALOG, fetch_once
+
+TR = timezone(timedelta(hours=3))
+POLICY = 'https://www.vitruta.com/pages/sss'
+
+
+def shipping_rule():
+    from html import unescape
+    try:
+        page = unescape(re.sub(r'<[^>]+>', ' ', fetch_once(POLICY, timeout=9)))
+        page = ' '.join(page.lower().split())
+        free = re.search(r'([\d.]+) tl ve üzeri alışverişlerde kargo ücretsiz', page)
+        fee = re.search(r'([\d.]+) tl altı siparişlerde ise kargo ücretimiz sabit ([\d.]+) tl', page)
+        if free and fee and free[1] == fee[1]:
+            return {'sourceId':'vitruta', 'threshold':int(free[1].replace('.', ''))*100,
+                    'fee':int(fee[2].replace('.', ''))*100, 'url':POLICY,
+                    'checkedAt':datetime.now(timezone.utc).isoformat()}
+    except (OSError, ValueError):
+        pass
+    return None
+
+
+def shipping_rules():
+    rules = []
+    vitruta = shipping_rule()
+    if vitruta:
+        rules.append(vitruta)
+    url = 'https://www.sneaksup.com/sss'
+    try:
+        from html import unescape
+        text = ' '.join(unescape(re.sub(r'<[^>]+>', ' ', fetch_once(url, timeout=9))).lower().split())
+        threshold = re.search(r'([\d.]+) tl ve üzeri siparişlerinde kargo ücreti bizden', text)
+        if threshold:
+            rules.append({'sourceId':'sneaksup','threshold':int(threshold[1].replace('.',''))*100,'fee':None,'url':url,'checkedAt':datetime.now(timezone.utc).isoformat()})
+    except (ValueError, OSError):
+        pass
+    return rules
+
+
+def record(data, directory, at=None):
+    at = at or datetime.now(timezone.utc)
+    cutoff = (at.astimezone(TR).date()-timedelta(days=29)).isoformat()
+    directory = Path(directory)
+    directory.mkdir(parents=True, exist_ok=True)
+    groups = {key: [] for key in '0123456789abcdef'}
+    for p in data['products']:
+        if re.fullmatch(r'[a-f0-9]{20}', p['id']):
+            groups[p['id'][0]].append(p)
+    source_checks = {s['id']:s['checkedAt'] for s in data['sources'] if s.get('status')=='ok' and s.get('checkedAt') and -300 <= (at-datetime.fromisoformat(s['checkedAt'])).total_seconds() < 86400}
+    for key, products in groups.items():
+        path = directory / (key + '.json')
+        rows = json.loads(path.read_text(encoding='utf-8')) if path.exists() else {}
+        for row in rows.values():
+            row['days'] = {day:v for day,v in row['days'].items() if day >= cutoff}
+            row.pop('current', None)
+            row.pop('completeAt', None)
+        for p in products:
+            current = {}
+            row = rows.setdefault(p['id'], {'days':{}})
+            for offer in fresh_offers(p, data, at):
+                checked = datetime.fromisoformat(offer['checkedAt'])
+                day = checked.astimezone(TR).date().isoformat()
+                row.setdefault('stores', {})[offer['sourceId']] = day
+                row['lastSeen'] = max(row.get('lastSeen', ''), offer['checkedAt'])
+                for v in offer['variants']:
+                    size = shoe_size(v['size'])
+                    if not size:
+                        continue
+                    prices = row['days'].setdefault(day,{})
+                    prices[size] = min(v['price'], prices.get(size, v['price']))
+                    candidates = current.setdefault(size, [])
+                    candidates.append([v['price'], offer['checkedAt']])
+            if current:
+                row['current'] = current
+        for row in rows.values():
+            stores = {key:day for key,day in row.get('stores',{}).items() if day >= cutoff}
+            row['stores'] = stores
+            if stores and all(store in source_checks for store in stores):
+                row['completeAt'] = min(source_checks[store] for store in stores)
+        rows = {k:v for k,v in rows.items() if v['days']}
+        temp = path.with_suffix('.tmp')
+        temp.write_text(json.dumps(rows, separators=(',',':'), ensure_ascii=False), encoding='utf-8')
+        temp.replace(path)
+
+
+def update(data, directory):
+    record(data, directory)
+    temp = directory/'shipping.tmp'
+    temp.write_text(json.dumps(shipping_rules()), encoding='utf-8')
+    temp.replace(directory/'shipping.json')
+    from releases import update_releases
+    update_releases(directory)
+
+
+if __name__ == '__main__':
+    update(catalog(), CATALOG.parent/'radar')

@@ -16,7 +16,7 @@ for (const [input,expected] of [['44,5','44.5'],['36⅔','36 ⅔'],['35','35'],[
   context.sizeInput=input;
   assert.equal(vm.runInContext('shoeSize(sizeInput)',context),expected,input);
 }
-vm.runInContext(readFileSync('web/app.js','utf8').replace('load();checkStatus();',''), context);
+vm.runInContext(readFileSync('web/app.js','utf8').replace('startRadar();',''), context);
 const offer = (sourceId, variants, age=0) => ({sourceId, variants, url:'https://store.example/product', checkedAt:new Date(Date.now()-age).toISOString()});
 const variant = (size, price, available=true) => ({size,price,available});
 context.fixture = {sources:[{id:'a',status:'ok'},{id:'b',status:'ok'},{id:'failed',status:'error'}],products:[
@@ -57,6 +57,10 @@ assert(vm.runInContext('applyQuote(fixture.products[0],fixture.products[0].offer
 assert.deepEqual(ranks(),[40000,60000,70000]);
 assert(!vm.runInContext('applyQuote(fixture.products[0],fixture.products[0].offers[0],{...quote,url:"https://other.test"})',context));
 o0.variants=[variant('42',100),variant('44.5',90000),variant('45',80000,false)];
+context.radarOffer={sourceId:'b',variants:[variant('44.5',399900),variant('45',400000)],url:'https://store.example/product',price:399900};
+vm.runInContext("shippingRules=[{sourceId:'b',threshold:400000,fee:7900,checkedAt:new Date().toISOString()}];$('with-shipping').checked=true;",context);
+assert.deepEqual(JSON.parse(vm.runInContext("JSON.stringify(standings([{id:'shoe',name:'shoe',offers:[radarOffer]}]).map(r=>[r.price,r.sizes]))",context)),[[400000,['45']]]);
+vm.runInContext("$('with-shipping').checked=false",context);
 console.log('Size-first filtering: two sizes, brand, cheapest eligible store, stock/freshness, empty state and detail link passed.');
 
 context.fixture.products.push({id:'third-size',name:'Third',brand:'SALOMON',offers:[offer('b',[variant('46',55000)])]});
