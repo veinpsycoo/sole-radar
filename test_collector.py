@@ -62,9 +62,9 @@ class CollectorTests(unittest.TestCase):
             self.assertIsNone(c.money(bad))
 
     def test_non_shoes_are_not_catalogued(self):
-        for name in ['Clima Bottle', 'Urban Bottle', 'Ayakkabı bakım seti', 'Sneaker çorap', 'Botanik poster', 'Books New Shoes: Contemporary Footwear Design', 'Ayakkabı çanta']:
+        for name in ['Clima Bottle', 'Urban Bottle', 'Ayakkabı bakım seti', 'Sneaker çorap', 'Botanik poster', 'Books New Shoes: Contemporary Footwear Design', 'Ayakkabı çanta', 'Ayakkabı bağcık seti', 'Ayakkabı bağcıkları']:
             self.assertFalse(c.footwear(name), name)
-        for name in ['Kadın Bot', 'Outdoor Ayakkabı', 'Sandalet', 'Sneaker', 'Krampon']:
+        for name in ['Kadın Bot', 'Outdoor Ayakkabı', 'Sandalet', 'Sneaker', 'Krampon', 'Bağcıklı Erkek Ayakkabı']:
             self.assertTrue(c.footwear(name), name)
 
     def test_codes_preserve_colors(self):

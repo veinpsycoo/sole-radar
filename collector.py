@@ -157,7 +157,7 @@ def style_code(brand, sku, size=''):
 def footwear(text):
     text = str(text).casefold()
     shoe = any(w in text for w in ['ayakkab', 'sneaker', 'sandalet', 'terlik', 'boots', 'shoes', 'footwear', 'krampon']) or re.search(r'\bbot(?:u|lar[ıi]?)?\b', text)
-    return bool(shoe) and not any(w in text for w in ['bakım', 'temizleyici', 'bağcık', 'çekeceği', 'corap', 'çorap']) and not re.search(r'\b(books?|kitap|kitabı|poster|çanta|bag)\b', text)
+    return bool(shoe) and not any(w in text for w in ['bakım', 'temizleyici', 'çekeceği', 'corap', 'çorap']) and not re.search(r'\b(books?|kitap|kitabı|poster|çanta|bag|bağcık(?:lar[ıi]?)?)\b', text)
 
 
 def product(source, local_id, name, brand, color, image, url, variants, sku='', size=''):
