@@ -1,3 +1,4 @@
+import {isRunningInExpoGo} from 'expo';
 import {useEffect,useState} from 'react';
 import {Pressable,Text,TextInput,View} from 'react-native';
 import {money} from './catalog';
@@ -17,9 +18,9 @@ export function ProductRadar({id,sizes,name}:{id:string;sizes:string[];name:stri
   }
   return <View style={s.offer}><Text style={s.sectionTitle}>Fiyat geçmişi</Text>
     <Text style={s.caption}>{historyState}</Text>{sizes.map(size=>{const obs=Object.entries(days).filter(([,prices])=>prices[size]>0).sort(([a],[b])=>b.localeCompare(a));return <Text key={size} style={s.caption}>EU {size.replace('.',',')} · {obs.length?obs.map(([day,v])=>day.split('-').reverse().join('.')+' '+money(v[size])).join('  /  '):historyState||'Henüz gözlem yok.'}</Text>;})}
-    <Text style={s.sectionTitle}>Fiyat ve stok alarmı</Text><Text style={s.caption}>Seçtiğin numaralardan biri stoğa gelince veya hedef fiyatına inince bildir. Takip 90 gün sürer.</Text>
+    <Text style={s.sectionTitle}>Fiyat ve stok alarmı</Text>{isRunningInExpoGo()?<Text style={s.caption}>Uzaktan bildirimleri TestFlight sürümünde deneyebilirsin.</Text>:<><Text style={s.caption}>Seçtiğin numaralardan biri stoğa gelince veya hedef fiyatına inince bildir. Takip 90 gün sürer.</Text>
     <TextInput style={s.input} accessibilityLabel="Hedef fiyat, TL" keyboardType="decimal-pad" placeholder="Yalnız stok için boş bırak · hedef TL" placeholderTextColor="#999" value={target} onChangeText={setTarget}/>
     <Pressable accessibilityRole="checkbox" accessibilityState={{checked:daily}} onPress={()=>setDaily(!daily)}><Text style={s.text}>{daily?'☑':'☐'} En fazla günde bir bildirim</Text></Pressable>
     <Pressable disabled={busy||!sizes.length} style={s.button} onPress={()=>submit(false)}><Text style={s.selectedText}>Alarmı kaydet</Text></Pressable>
-    <Pressable disabled={busy||!sizes.length} onPress={()=>submit(true)}><Text style={s.navLink}>Bu numaraların alarmını kaldır</Text></Pressable><Text accessibilityLiveRegion="polite" style={s.caption}>{message}</Text></View>;
+    <Pressable disabled={busy||!sizes.length} onPress={()=>submit(true)}><Text style={s.navLink}>Bu numaraların alarmını kaldır</Text></Pressable><Text accessibilityLiveRegion="polite" style={s.caption}>{message}</Text></>}</View>;
 }

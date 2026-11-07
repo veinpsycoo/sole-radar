@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "SOLE RADAR",
+    "name": "Orcinal",
     "slug": "sole-radar",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -11,13 +11,13 @@
       "bundleIdentifier": "com.soleradar.app",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+      "usesAppleSignIn": true
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#101314",
         "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
@@ -29,7 +29,22 @@
     "plugins": [
       "expo-router",
       "expo-secure-store",
-      "expo-notifications"
+      "expo-notifications",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.603028685670-ci1haoobf95b233kk6d2u8gn5pp7oo67"
+        }
+      ],
+      "expo-apple-authentication",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 144,
+          "backgroundColor": "#101314"
+        }
+      ]
     ],
     "scheme": "soleradar",
     "extra": {

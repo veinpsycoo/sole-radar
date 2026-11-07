@@ -1,3 +1,4 @@
+import {isRunningInExpoGo} from 'expo';
 import * as Crypto from 'expo-crypto';
 import * as SecureStore from 'expo-secure-store';
 import Constants from 'expo-constants';
@@ -7,13 +8,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export type LocalWatch={id:string;sizes:string[];target:number|null;name:string};
 export async function watch(id:string,sizes:string[],target:number|null,remove:boolean,daily:boolean,name=''){
   if(Platform.OS==='web')throw Error('Bildirimler iOS ve Android uygulamasında kullanılabilir.');
+  if(isRunningInExpoGo())throw Error('Uzaktan bildirimler Orcinal’in imzalı sürümünde kullanılabilir.');
   const endpoint='https://sole-radar-alerts.aikolejim.workers.dev/watch';
   let auth=await SecureStore.getItemAsync('radar-key');
   if(!auth){auth=Crypto.randomUUID();await SecureStore.setItemAsync('radar-key',auth);}
   let token=await SecureStore.getItemAsync('radar-token');
   if(!remove){
     const projectId=Constants.easConfig?.projectId??Constants.expoConfig?.extra?.eas?.projectId;
-    if(!projectId)throw Error('Bildirim için imzalı SOLE RADAR sürümü gerekiyor.');
+    if(!projectId)throw Error('Bildirim için imzalı Orcinal sürümü gerekiyor.');
     const notifications=await import('expo-notifications');
     if(Platform.OS==='android')await notifications.setNotificationChannelAsync('radar',{name:'Fiyat ve stok',importance:notifications.AndroidImportance.DEFAULT});
     if(!(await notifications.requestPermissionsAsync()).granted)throw Error('Bildirim izni verilmedi.');

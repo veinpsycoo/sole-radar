@@ -1,6 +1,6 @@
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, AppState, Linking, FlatList, Image, Platform, Pressable, ScrollView, Text, TextInput, View} from 'react-native';
-import {Link, router} from 'expo-router';
+import {Link, router, useLocalSearchParams} from 'expo-router';
 import {Stack} from 'expo-router/stack';
 import {useCatalog} from '@/lib/catalog-context';
 import {money, safeUrl, search, shoeSize, offersFor} from '@/lib/catalog';
@@ -10,9 +10,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {board,site,type Shipping} from '@/lib/radar';
 type Saved={sizes:string[];brand:string;query:string;total:boolean;leader?:{key:string;price:number;sizes:string[]}};
 export default function Home() {
+  const {numaralar}=useLocalSearchParams<{numaralar?:string}>();
+  return <Ranking key={numaralar||''} initialSizes={typeof numaralar==='string'?[...new Set(numaralar.split('|').map(shoeSize).filter(Boolean))].slice(0,3):[]}/>;
+}
+function Ranking({initialSizes}:{initialSizes:string[]}) {
   const {data, loading, error, now, refresh,verify} = useCatalog();
   const [query,setQuery] = useState(''), [brand,setBrand] = useState('');
-  const [sizes,setSizes] = useState<string[]>([]), [sizesOpen,setSizesOpen] = useState(false);
+  const [sizes,setSizes] = useState<string[]>(initialSizes), [sizesOpen,setSizesOpen] = useState(false);
   const [saved,setSaved]=useState<Saved[]>([]),[total,setTotal]=useState(false),[shipping,setShipping]=useState<Shipping[]>([]),[note,setNote]=useState('');
   useEffect(()=>{let mounted=true;AsyncStorage.getItem('radar-rankings').then(raw=>{if(raw&&mounted){const rows=JSON.parse(raw);if(Array.isArray(rows))setSaved(rows.filter(x=>Array.isArray(x.sizes)&&x.sizes.every((v:unknown)=>typeof v==='string'&&shoeSize(v))&&typeof x.query==='string'&&typeof x.brand==='string').slice(0,12));}}).catch(()=>{});fetch(site+'/radar/shipping.json').then(r=>r.json()).then(rows=>{if(mounted&&Array.isArray(rows))setShipping(rows);}).catch(()=>{});return ()=>{mounted=false;};},[]);
   async function save(rows:Saved[]){try{await AsyncStorage.setItem('radar-rankings',JSON.stringify(rows));setSaved(rows);setNote('Bu cihazda kaydedildi.');}catch{setNote('Seçim kaydedilemedi.');}}
@@ -32,7 +36,7 @@ export default function Home() {
   const same=(x:Saved)=>x.brand===brand&&x.query===query&&x.total===total&&String(x.sizes)===String(sizes);
   const prior=saved.find(same)?.leader;
   return <>
-    <Stack.Screen options={{headerRight:()=> <Link href="/about" style={s.navLink}>Yöntem</Link>}}/>
+    <Stack.Screen options={{headerLargeTitle:false,headerTitle:()=> <Image accessibilityLabel="Orcinal" resizeMode="contain" source={require('../assets/orcinal-wordmark.png')} style={{width:110,height:32}}/>,headerRight:()=> <Link href="/hesabim" style={s.navLink}>Hesabım</Link>}}/>
     {Platform.OS === 'ios' && <Stack.SearchBar placeholder="Model, marka veya kod ara" onChangeText={e=>setQuery(e.nativeEvent.text)}/>}
     <FlatList data={rows} keyExtractor={r=>r.key} contentInsetAdjustmentBehavior="automatic" contentContainerStyle={s.list} keyboardShouldPersistTaps="handled" refreshing={loading} onRefresh={refresh} initialNumToRender={10} windowSize={5}
       ListHeaderComponent={<View>

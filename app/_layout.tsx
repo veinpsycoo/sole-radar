@@ -1,3 +1,4 @@
+import {isRunningInExpoGo} from 'expo';
 import {useEffect} from 'react';
 import {Platform} from 'react-native';
 import {router} from 'expo-router';
@@ -6,7 +7,7 @@ import {StatusBar} from 'expo-status-bar';
 import {CatalogProvider} from '@/lib/catalog-context';
 export default function Layout() {
   useEffect(()=>{
-    if(Platform.OS==='web')return;
+    if(Platform.OS==='web'||isRunningInExpoGo())return;
     let active=true,subscription:{remove():void}|undefined;
     import('expo-notifications').then(mod=>{
       if(!active)return;
@@ -20,5 +21,5 @@ export default function Layout() {
     }).catch(()=>{});
     return ()=>{active=false;subscription?.remove();};
   },[]);
-  return <CatalogProvider><StatusBar style="light"/><Stack screenOptions={{headerStyle:{backgroundColor:'#0a0a0d'}, headerTintColor:'#f0f0f5', contentStyle:{backgroundColor:'#0a0a0d'}, headerBackButtonDisplayMode:'minimal'}}><Stack.Screen name="index" options={{title:'SOLE RADAR', headerLargeTitle:true}}/><Stack.Screen name="product/[id]" options={{title:'Teklifler'}}/><Stack.Screen name="about" options={{title:'Yöntemimiz'}}/></Stack></CatalogProvider>;
+  return <CatalogProvider><StatusBar style="light"/><Stack screenOptions={{headerStyle:{backgroundColor:'#0a0a0d'}, headerTintColor:'#f0f0f5', contentStyle:{backgroundColor:'#0a0a0d'}, headerBackButtonDisplayMode:'minimal'}}><Stack.Screen name="index" options={{title:'Orcinal', headerLargeTitle:true}}/><Stack.Screen name="product/[id]" options={{title:'Teklifler'}}/><Stack.Screen name="hesabim" options={{title:'Hesabım'}}/><Stack.Screen name="about" options={{title:'Yöntemimiz'}}/></Stack></CatalogProvider>;
 }
