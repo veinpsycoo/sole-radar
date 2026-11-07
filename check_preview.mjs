@@ -15,7 +15,7 @@ async function get(path, status=200, options={}) {
   return response;
 }
 const home = await (await get('/')).text();
-assert(home.includes('id="size2"') && home.includes('id="brand"'));
+assert(home.includes('id="size-picker"') && home.includes('id="brand"'));
 assert(!home.includes('hero-shoe'));
 assert(home.includes('noindex,follow'));
 assert(home.includes('/blog/'));
@@ -42,7 +42,7 @@ const sized = catalog.products.find(p=>p.offers.some(o=>o.variants.some(v=>/^\d+
 assert(sized, 'A product with a verified numeric size must exist');
 const size = sized.offers.flatMap(o=>o.variants).find(v=>/^\d+(?:[.,]\d+)?$/.test(v.size)).size;
 const detail = await(await get('/urun/'+sized.id+'/?beden='+encodeURIComponent(size))).text();
-assert(detail.includes(`value="${size}" selected`));
+assert(detail.includes(`value="${size}" checked`));
 await get('/modeller/?page=2');
 assert((await(await get('/robots.txt')).text()).includes('Disallow: /'));
 assert((await(await get('/llms.txt')).text()).includes('[Veri yöntemimiz]'));

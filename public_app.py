@@ -10,7 +10,7 @@ from urllib.parse import urlsplit
 from collector import ROOT, CATALOG
 from site_pages import resolve, site_url, catalog, fresh_offers, page, HTML
 
-STATIC = {'app.js', 'hero-3d.js', 'motion.js', 'style.css', 'editorial.css', 'pages.css'}
+STATIC = {'app.js', 'size-picker.js', 'size-picker.css', 'hero-3d.js', 'motion.js', 'style.css', 'editorial.css', 'pages.css'}
 
 
 def response(path, query):

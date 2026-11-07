@@ -43,7 +43,7 @@ Bu adres bir gösterim sürümüdür: arama motorlarına kapalıdır, salt okunu
 
 ## Tasarım ve içerik
 
-Ana sayfa doğrudan ayak numarası, isteğe bağlı ikinci numara ve marka seçimiyle açılır. Beden seçilmeden ürün gösterilmez. İki beden seçilirse herhangi birinde stok olması yeterlidir; model fiyatı yalnız bu bedenlerdeki güncel teklifler arasındaki en düşük tutardır. Sonuçlar ucuzdan pahalıya sıralanır. Seçimler URL'de ve ürün detayında korunur. Örnek: `/?size=44.5&size2=45&brand=SALOMON`. Büyük ayakkabı görseli ve hareket betikleri ana sayfadan, 36 kare yeni yayın paketinden çıkarıldı.
+Ana sayfa tek numara kutusu ve marka seçimiyle açılır. Kutuda üç numaraya kadar tiklenebilir; ayrı ikinci numara alanı yoktur. Beden seçilmeden ürün gösterilmez. Seçilen numaralardan herhangi birinde stok olması yeterlidir; fiyat yalnız bu bedenlerdeki güncel tekliflerden hesaplanır ve ucuzdan pahalıya sıralanır. Seçimler URL'de ve ürün detayında korunur: `/?size=44.5&size=45&size=46&brand=SALOMON`. Eski `size2` bağlantıları da okunur. Büyük ayakkabı görseli ve hareket betikleri ana sayfadan, 36 kare yayın paketinden çıkarıldı.
 
 `site_pages.py`: sunucuda üretilen ürün, model, blog, yöntem, hakkında ve gizlilik sayfaları. `content/articles.json`: üç rehber. Canonical, Article/Product şeması, sitemap, robots, sosyal paylaşım meta verileri ve llms.txt bulunur. Üretim için gerçek HTTPS `SITE_URL` ayarlanmadan indeksleme açılmaz. Çoklu güncel mağazası olmayan ürün sayfaları noindex kalır; uydurma yorum veya puan eklenmez.
 

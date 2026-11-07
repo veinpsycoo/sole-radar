@@ -70,6 +70,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.send(code, body.encode('utf-8'), mime)
         files = {'/hero-3d.js': ('hero-3d.js', 'text/javascript; charset=utf-8'), '/': ('index.html', 'text/html; charset=utf-8'), '/app.js': ('app.js', 'text/javascript; charset=utf-8'), '/motion.js': ('motion.js', 'text/javascript; charset=utf-8'), '/style.css': ('style.css', 'text/css; charset=utf-8'), '/editorial.css': ('editorial.css', 'text/css; charset=utf-8')}
         files['/pages.css'] = ('pages.css', 'text/css; charset=utf-8')
+        files['/size-picker.js'] = ('size-picker.js', 'text/javascript; charset=utf-8')
+        files['/size-picker.css'] = ('size-picker.css', 'text/css; charset=utf-8')
         for asset in (ROOT / 'web' / 'vendor').iterdir():
             if asset.is_file() and not asset.is_symlink():
                 files['/vendor/' + asset.name] = ('vendor/' + asset.name, mimetypes.guess_type(asset.name)[0] or 'application/octet-stream')

@@ -47,7 +47,7 @@ def main():
     active = sum(bool(s.fresh_offers(p, data)) for p in data['products'])
     for number in range(1, (active + 59) // 60 + 1):
         write(f'/modeller/page/{number}/', s.resolve('/modeller/', f'page={number}')[1])
-    for name in ['app.js', 'hero-3d.js', 'motion.js', 'style.css', 'editorial.css', 'pages.css']:
+    for name in ['app.js', 'size-picker.js', 'size-picker.css', 'hero-3d.js', 'motion.js', 'style.css', 'editorial.css', 'pages.css']:
         (OUT / name).write_text(fix((ROOT / 'web' / name).read_text(encoding='utf-8')), encoding='utf-8')
     with (OUT / 'pages.css').open('a', encoding='utf-8') as css:
         css.write('\n[hidden]{display:none!important}\n')

@@ -85,7 +85,7 @@ def metadata(title, description, path, schema=None, index=True):
 
 
 def page(title, description, path, body, schema=None, index=True):
-    return f'''<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{escape(title)} — SOLE RADAR</title>{metadata(title, description, path, schema, index)}<link rel="icon" href="/vendor/radar.svg?v=2"><link rel="stylesheet" href="/vendor/fonts.css"><link rel="stylesheet" href="/pages.css"></head><body class="reading-page"><a class="skip" href="#content">İçeriğe geç</a><header><a class="wordmark" href="/">SOLE<span>RADAR</span> ↗</a><nav aria-label="Ana menü"><a href="/modeller/">Modeller</a><a href="/blog/">Rehber</a><a href="/yontem/">Yöntemimiz</a></nav></header><main id="content">{body}</main><footer><a href="/">SOLE RADAR ↗</a><p>Bağımsız ayakkabı keşfi ve fiyat karşılaştırması.</p><a href="/hakkimizda/">Hakkımızda</a> · <a href="/gizlilik/">Gizlilik</a> · <a href="/yontem/">Veri yöntemi</a></footer></body></html>'''
+    return f'''<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{escape(title)} — SOLE RADAR</title>{metadata(title, description, path, schema, index)}<link rel="icon" href="/vendor/radar.svg?v=2"><link rel="stylesheet" href="/vendor/fonts.css"><link rel="stylesheet" href="/pages.css"><link rel="stylesheet" href="/size-picker.css"><script src="/size-picker.js" defer></script></head><body class="reading-page"><a class="skip" href="#content">İçeriğe geç</a><header><a class="wordmark" href="/">SOLE<span>RADAR</span> ↗</a><nav aria-label="Ana menü"><a href="/modeller/">Modeller</a><a href="/blog/">Rehber</a><a href="/yontem/">Yöntemimiz</a></nav></header><main id="content">{body}</main><footer><a href="/">SOLE RADAR ↗</a><p>Bağımsız ayakkabı keşfi ve fiyat karşılaştırması.</p><a href="/hakkimizda/">Hakkımızda</a> · <a href="/gizlilik/">Gizlilik</a> · <a href="/yontem/">Veri yöntemi</a></footer></body></html>'''
 
 
 def article_cards():
@@ -104,7 +104,7 @@ def product_cards(products, data):
 def homepage():
     html = (ROOT / 'web/index.html').read_text(encoding='utf-8')
     html = re.sub(r'<meta name="description"[^>]+>', '', html)
-    html = html.replace('</head>', metadata('SOLE RADAR — Ayakkabı fiyatlarını karşılaştır', 'Bir veya iki beden seç, marka belirle, stoklu ayakkabıları en düşük fiyattan karşılaştır. Tekliflerin kaynağını ve son kontrol zamanını gör.', '/', {'@context': 'https://schema.org', '@type': 'WebSite', 'name': 'SOLE RADAR', **({'url': site_url()} if site_url() else {})}) + '<link rel="stylesheet" href="/pages.css"></head>')
+    html = html.replace('</head>', metadata('SOLE RADAR — Ayakkabı fiyatlarını karşılaştır', 'Üç bedene kadar seç, marka belirle, stoklu ayakkabıları en düşük fiyattan karşılaştır. Tekliflerin kaynağını ve son kontrol zamanını gör.', '/', {'@context': 'https://schema.org', '@type': 'WebSite', 'name': 'SOLE RADAR', **({'url': site_url()} if site_url() else {})}) + '<link rel="stylesheet" href="/pages.css"></head>')
     html = html.replace('</main>', '<section class="reading-home"><p class="eyebrow">03 / RADAR REHBERİ</p><h2>İyi bir seçim, doğru bilgiyle başlar.</h2>' + article_cards() + '<p><a href="/modeller/">Tüm model sayfaları ↗</a> · <a href="/yontem/">Karşılaştırma yöntemimiz ↗</a></p></section></main>')
     return html
 
@@ -167,7 +167,7 @@ def resolve(path, query=''):
     if not p:
         return 404, page('Ürün bulunamadı', 'Bu ürün kaydı bulunamadı.', path, '<h1>Ürün bulunamadı.</h1><a href="/modeller/">Modelleri keşfet</a>', index=False), HTML
     offers = fresh_offers(p, data)
-    selected_sizes = list(dict.fromkeys(value[:40].replace(',', '.') for value in parse_qs(query).get('beden', []) if value))[:2]
+    selected_sizes = list(dict.fromkeys(value[:40].replace(',', '.') for value in parse_qs(query).get('beden', []) if value))[:3]
     selected_size = ' / '.join(selected_sizes).replace('.', ',')
     sizes = sorted({v['size'] for o in offers for v in o['variants'] if v.get('size')}, key=lambda value: [int(t) if t.isdigit() else t for t in re.split(r'(\d+)', value)])
     if selected_size:
@@ -175,15 +175,9 @@ def resolve(path, query=''):
         offers = [o | {'price': min(v['price'] for v in o['variants'])} for o in offers if o['variants']]
         offers.sort(key=lambda o: o['price'])
     body = f'<a href="/modeller/">← Modeller</a><div class="product-detail"><img src="{escape(safe_url(p["image"]))}" alt="{escape(p["name"])}" width="640" height="480"><div><p class="eyebrow">{escape(p["brand"])}</p><h1>{escape(p["name"])}</h1><p>{escape(p.get("color", ""))}</p><p>Ürün kodu: {escape(p.get("code") or "Mağazaya özel kayıt")}</p><p class="lead">{money(offers[0]["price"]) + "’den başlayan" if offers else "Güncel teklif bulunmuyor."}</p><p>Fiyatlar bedene göre değişebilir. Kargo ve koşullu kampanyalar dahil değildir.</p></div></div><h2>Mağazalar, bedenler ve fiyatlar</h2>'
-    body += '<form class="detail-size" method="get">'
-    for i in range(2):
-        selected = selected_sizes[i] if i < len(selected_sizes) else ''
-        options = '<option value="">' + ('Tüm bedenler' if i == 0 else 'İkinci numara (isteğe bağlı)') + '</option>'
-        if selected and selected not in sizes:
-            options += f'<option value="{escape(selected)}" selected>{escape(selected)} — güncel stok yok</option>'
-        options += ''.join(f'<option value="{escape(size)}"{" selected" if size == selected else ""}>{escape(size.replace(".", ","))}</option>' for size in sizes)
-        body += f'<label for="detail-size-{i}">{"Ayak numaran" if i == 0 else "İkinci numara"}</label><select id="detail-size-{i}" name="beden">{options}</select>'
-    body += '<button type="submit">Uygula</button></form>'
+    choices = list(dict.fromkeys(sizes + selected_sizes))
+    checks = ''.join(f'<label><input type="checkbox" name="beden" value="{escape(size)}"{" checked" if size in selected_sizes else ""}><span>{escape(size.replace(".", ","))}</span></label>' for size in choices)
+    body += '<form class="detail-size" method="get"><details class="size-picker" data-size-picker><summary aria-label="Ayak numaralarını seç"><span data-size-label>Numaranı seç</span></summary><div class="size-picker-panel"><div class="size-options" role="group" aria-label="En fazla üç ayak numarası seç">' + checks + '</div><p data-size-count role="status">En fazla üç numara seçebilirsin.</p></div></details><button type="submit">Uygula</button></form>'
     if selected_size:
         body += f'<p><strong>{escape(selected_size)} beden</strong> için doğrulanmış teklifler gösteriliyor.</p>' if offers else f'<p>{escape(selected_size)} beden için güncel teklif bulunmuyor. Başka bir beden seçebilirsin.</p>'
     for o in offers:

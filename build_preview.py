@@ -15,7 +15,7 @@ def build():
     snapshot = CATALOG.read_bytes()
     (destination / 'data/catalog.json').write_bytes(snapshot)
     (destination / 'public/catalog.json').write_bytes(snapshot)
-    files = ['app.js', 'hero-3d.js', 'motion.js', 'style.css', 'editorial.css', 'pages.css']
+    files = ['app.js', 'size-picker.js', 'size-picker.css', 'hero-3d.js', 'motion.js', 'style.css', 'editorial.css', 'pages.css']
     shutil.copy2(ROOT / 'web/index.html', destination / 'web/index.html')
     for name in files:
         shutil.copy2(ROOT / 'web' / name, destination / 'public' / name)

@@ -102,7 +102,7 @@ class SiteTests(unittest.TestCase):
         self.assertIn('"lowPrice": "1299.99"', html)
         self.assertIn('noindex,follow', html)  # Single-store pages aren't SEO comparison pages.
 
-    def test_two_sizes_use_cheapest_matching_stock_and_preserve_selection(self):
+    def test_three_sizes_use_cheapest_matching_stock_and_preserve_selection(self):
         self.offer['variants'] = [
             {'size': '42', 'price': 100, 'available': True},
             {'size': '44.5', 'price': 90000, 'available': True},
@@ -112,9 +112,11 @@ class SiteTests(unittest.TestCase):
         p = {'id': 'a'*20, 'name': 'Shoe', 'brand': 'Brand', 'image': '', 'offers': [self.offer]}
         self.data['products'] = [p]
         with patch.object(pages, 'catalog', return_value=self.data):
-            html = pages.resolve('/urun/' + p['id'] + '/', 'beden=44%2C5&beden=45&beden=42')[1]
-        self.assertIn('value="44.5" selected', html)
-        self.assertIn('value="45" selected', html)
+            html = pages.resolve('/urun/' + p['id'] + '/', 'beden=44%2C5&beden=45&beden=46&beden=42')[1]
+        self.assertIn('value="44.5" checked', html)
+        self.assertIn('value="45" checked', html)
+        self.assertIn('value="46" checked', html)
+        self.assertNotIn('İkinci numara', html)
         self.assertIn('"lowPrice": "700.00"', html)
         self.assertIn('"highPrice": "900.00"', html)
         self.assertNotIn('<li>42 ', html)
@@ -128,7 +130,7 @@ class SiteTests(unittest.TestCase):
         with patch.object(pages, 'catalog', return_value=self.data):
             html = pages.resolve('/urun/' + p['id'] + '/', 'beden=42')[1]
             missing = pages.resolve('/urun/' + p['id'] + '/', 'beden=%3Ctest%3E')[1]
-        self.assertIn('value="42" selected', html)
+        self.assertIn('value="42" checked', html)
         self.assertIn('"lowPrice": "1299.99"', html)
         self.assertNotIn('999,99', html)
         self.assertIn('noindex,follow', html)
