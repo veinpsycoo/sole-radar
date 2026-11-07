@@ -6,7 +6,7 @@ const elements = new Map();
 const boxes=['42','44.5','45','46','50'].map(value=>({value,checked:false,disabled:false}));
 const labels={};
 elements.set('size-picker',{querySelectorAll:selector=>selector==='input:checked'?boxes.filter(b=>b.checked):boxes,querySelector:selector=>labels[selector]??={textContent:''}});
-const context = vm.createContext({URL, URLSearchParams, Intl, Date, setTimeout, clearTimeout,
+const context = vm.createContext({URL, URLSearchParams, Intl, Date, setTimeout, clearTimeout,setInterval:()=>{},
   document: {querySelectorAll(){return [];},addEventListener(){},getElementById(id) {
     if (!elements.has(id)) elements.set(id, {value:'', addEventListener(){}});
     return elements.get(id);
@@ -44,9 +44,19 @@ assert.deepEqual(choose('44.5','44.5','SALOMON').map(p=>p.price),[90000]);
 assert.deepEqual(choose('50','','SALOMON'),[]);
 assert.equal(context.fixture.products[0].offers[0].variants.length,3);
 choose('44.5','45','SALOMON');
-const card=vm.runInContext('card(selectProducts()[0])',context);
-assert(card.includes('?beden=44.5&beden=45'));
-assert(!card.includes('42:'));
+const card=vm.runInContext('rankRow(standings(selectProducts())[0],0)',context);
+assert(card.includes('href="https://store.example/product"') && card.includes('LİDER'));
+elements.get('model').value='Salomon A';
+assert.deepEqual(choose('44.5','45','SALOMON').map(p=>p.id),['salomon']);
+elements.get('model').value='';
+const ranks=()=>JSON.parse(JSON.stringify(vm.runInContext('standings(selectProducts()).map(r=>r.price)',context)));
+assert.deepEqual(ranks(),[60000,70000,90000]);
+const p0=context.fixture.products[0], o0=p0.offers[0];
+context.quote={id:p0.id,url:o0.url,sourceId:o0.sourceId,checkedAt:new Date(Date.now()+50).toISOString(),variants:[{size:'44.5',price:40000,available:true}]};
+assert(vm.runInContext('applyQuote(fixture.products[0],fixture.products[0].offers[0],quote)',context));
+assert.deepEqual(ranks(),[40000,60000,70000]);
+assert(!vm.runInContext('applyQuote(fixture.products[0],fixture.products[0].offers[0],{...quote,url:"https://other.test"})',context));
+o0.variants=[variant('42',100),variant('44.5',90000),variant('45',80000,false)];
 console.log('Size-first filtering: two sizes, brand, cheapest eligible store, stock/freshness, empty state and detail link passed.');
 
 context.fixture.products.push({id:'third-size',name:'Third',brand:'SALOMON',offers:[offer('b',[variant('46',55000)])]});

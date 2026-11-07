@@ -9,7 +9,7 @@ def build():
     destination = ROOT / 'preview'
     for folder in ('api', 'web', 'public/vendor', 'content', 'data'):
         (destination / folder).mkdir(parents=True, exist_ok=True)
-    for name in ('collector.py', 'site_pages.py', 'public_app.py', 'refresh_guard.py'):
+    for name in ('collector.py', 'site_pages.py', 'public_app.py', 'live_quote.py', 'refresh_guard.py'):
         shutil.copy2(ROOT / name, destination / name)
     shutil.copy2(ROOT / 'content/articles.json', destination / 'content/articles.json')
     snapshot = CATALOG.read_bytes()

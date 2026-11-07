@@ -12,8 +12,8 @@ def fix(text):
     text = re.sub(r'/modeller/\?page=(\d+)', r'/modeller/page/\1/', text)
     text = re.sub(r'((?:href|src|action)=")/(?!/)', r'\1' + BASE + '/', text)
     text = text.replace('<head>', '<head><meta name="referrer" content="no-referrer">', 1)
-    text = text.replace("fetch('/api/catalog')", "fetch('" + BASE + "/api/catalog.json')")
-    text = text.replace("fetch('/api/status')", "fetch('" + BASE + "/api/status.json')")
+    text = text.replace("'/api/catalog'", "'" + BASE + "/api/catalog.json'")
+    text = text.replace("'/api/status'", "'" + BASE + "/api/status.json'")
     return text
 
 
@@ -63,7 +63,7 @@ def main():
     shutil.copy2(ROOT / 'web/static-detail.js', OUT / 'static-detail.js')
     (OUT / 'api').mkdir(exist_ok=True)
     shutil.copy(CATALOG, OUT / 'api' / 'catalog.json')
-    (OUT / 'api' / 'status.json').write_text(json.dumps({'running': False, 'readOnly': True, 'preview': True, 'error': '', 'progress': {}}), encoding='utf-8')
+    (OUT / 'api' / 'status.json').write_text(json.dumps({'running': False, 'readOnly': True, 'preview': True, 'generatedAt':data['generatedAt'], 'error': '', 'progress': {}}), encoding='utf-8')
     nf = s.page('Sayfa bulunamadı', 'Aradığın sayfa bulunamadı.', '/404', '<h1>Bu sayfa radarımızda yok.</h1><a href="/">Ana sayfaya dön ↗</a>', index=False)
     (OUT / '404.html').write_text(fix(nf), encoding='utf-8')
     (OUT / '.nojekyll').write_text('')

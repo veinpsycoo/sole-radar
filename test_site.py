@@ -10,6 +10,23 @@ import site_pages as pages
 
 
 class SiteTests(unittest.TestCase):
+    def test_live_quote_uses_catalog_url_and_verified_variant_stock(self):
+        import live_quote
+        from collector import SOURCES, beymen_rows
+        source = next(s for s in SOURCES if s['id']=='beymen')
+        product = dict(productId=17, displayName='Sneaker', brandName='Example', productUrl='/tr/p_example_17', actualPrice=499, actualPriceText='499 TL', isOutOfStock=False, firstLevelOfGoodType='AYAKKABI', secondLevelOfGoodType='AYAKKABI', sizeInfo='TR', sizes=[dict(sizeName='45',inStock=True)])
+        row = next(beymen_rows(source,[product | {'productSubCategory':'AYAKKABI'}]))
+        offer = {k:row[k] for k in ('sourceId','url')}
+        current = product | {'actualPrice':299, 'actualPriceText':'299 TL'}
+        with patch.object(live_quote.c,'fetch_once',return_value=json.dumps({'success':True,'result':current})):
+            self.assertEqual(live_quote.quote(row, offer)['variants'][0]['price'],29900)
+        with patch.object(live_quote.c,'fetch_once',return_value=json.dumps({'success':True,'result':current | {'isOutOfStock':True}})):
+            self.assertEqual(live_quote.quote(row, offer)['variants'],[])
+        with patch.object(live_quote.c,'fetch_once') as fetch:
+            with self.assertRaises(ValueError):
+                live_quote.quote(row,offer | {'url':'https://other.test/tr/p_example_17'})
+            fetch.assert_not_called()
+
     def test_selectable_sizes_are_adult_eu_and_fraction_labels_match(self):
         for value, expected in [('44,5','44.5'), ('36⅔','36 ⅔'), ('35','35'), ('50','50'), ('50.5',''), ('34',''), ('S',''), ('One Size',''), ('12 Ay',''), ('US 8',''), ('','')]:
             self.assertEqual(pages.shoe_size(value), expected, value)

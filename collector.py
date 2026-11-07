@@ -79,13 +79,13 @@ def get(url):
             time.sleep(1)
 
 
-def fetch_once(url):
+def fetch_once(url, *, timeout=25, body=None):
     # Only fixed, public retailer origins are requested; redirect destinations are checked too.
     allowed = {urlsplit(s['url']).hostname for s in SOURCES}
     if urlsplit(url).hostname not in allowed or urlsplit(url).scheme != 'https':
         raise ValueError('Kaynak adresi izinli değil')
-    request = Request(url, headers={'User-Agent': 'SoleRadar/1.0 (personal price comparison)', 'Accept': 'text/html,application/json'})
-    with build_opener(RetailRedirect()).open(request, timeout=25) as response:
+    request = Request(url, data=body, headers={'User-Agent': 'SoleRadar/1.0 (personal price comparison)', 'Accept': 'text/html,application/json', **({'Content-Type':'application/json'} if body is not None else {})})
+    with build_opener(RetailRedirect()).open(request, timeout=timeout) as response:
         if urlsplit(response.url).hostname not in allowed:
             raise ValueError('Beklenmeyen yönlendirme')
         data = response.read(12000001)
@@ -164,7 +164,7 @@ def product(source, local_id, name, brand, color, image, url, variants, sku='', 
     brand = unescape(str(brand or 'Marka belirtilmedi')).strip().upper()
     brand = {'NEWBALANCE': 'NEW BALANCE', 'ADIDAS ORIGINALS': 'ADIDAS'}.get(brand, brand)
     variants = [v for v in variants if v['price'] and v.get('available') is True]
-    if not variants:
+    if not variants and not source.get('live_check'):
         return None
     link = safe_url(url, source['url'], same_host=True)
     if not link:
@@ -355,7 +355,7 @@ def beymen_rows(source, entries):
         categories = ' '.join(str(p.get(key, '')) for key in ('productSubCategory', 'producMainCategory'))
         if 'ayakkab' not in categories.casefold() or not footwear('Ayakkabı ' + p.get('displayName', '')):
             continue
-        if p.get('isOutOfStock') is not False or p.get('isPreOwned') is True:
+        if (p.get('isOutOfStock') is not False and not (source.get('live_check') and p.get('isOutOfStock') is True)) or p.get('isPreOwned') is True:
             continue
         price = money(p.get('actualPrice'))
         display = str(p.get('actualPriceText', '')).strip()
