@@ -7,3 +7,5 @@ Tek kutuda üç ayak numarasına kadar tikle ve marka seç; seçili numaralarda 
 Bu dal GitHub Pages gösterim çıktısıdır. Son katalog taramasını gösterir; 24 saati geçen teklifler gizlenir.
 
 Numara seçimi EU 35–50 ile sınırlıdır; boş ve giyim/yaş etiketleri gösterilmez. Kaynak dalı GitHub Actions ile yayımlanır; katalog yenilemesi altı saat aralıkla planlanır.
+
+Mobil numara ızgarası üç eşit sütunla düzenlendi.
