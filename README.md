@@ -33,6 +33,8 @@ Bu adres bir gösterim sürümüdür: arama motorlarına kapalıdır, salt okunu
 
 ## Veri doğruluğu
 
+- Beymen erkek, kadın ve çocuk ayakkabıları kategori sayfalarının stoklu beden verisinden alınır. TL fiyatı doğrulanır; çoklu alım/sepet kampanyaları kullanılmaz. Beymen'in kendi ürün numaraları marka model kodu sayılmaz; kod doğrulanmadan başka mağazayla birleştirilmez. UK/US gibi farklı ölçü sistemleri etiketlenir, EU numarasına tahmini çevrilmez. Beymen pazaryeri satıcıları da bu kaynak içinde bulunabilir. Her kategori için 250 sayfalık üst sınır vardır; aşılırsa kapsam kısmi gösterilir.
+
 - Para tam sayı kuruş; yalnız doğrulanan stoklu varyantlar. Para birimi TRY kontrolü yapılır.
 - Bedene göre filtreleme ve fiyat hesabı; ölçü sistemleri arasında tahmini dönüşüm yok.
 - 24 saati geçen veya kaynağı başarısız teklifler aktif sonuçlardan çıkarılır. Kaynak ve kontrol tarihi görünür.

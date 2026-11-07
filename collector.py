@@ -30,6 +30,7 @@ SOURCES = [
     dict(id='converse', name='Converse Türkiye', url='https://www.converse.com.tr', kind='ld', paths=['/erkek-ayakkabi/', '/kadin-ayakkabi/', '/cocuk-ayakkabi/']),
     dict(id='puma', name='Puma Türkiye', url='https://tr.puma.com', kind='puma', paths=['/erkek/ayakkabi.html', '/kadin/ayakkabi.html', '/cocuk/erkek-cocuk/ayakkabi.html', '/cocuk/kiz-cocuk/ayakkabi.html']),
     dict(id='reebok', name='Reebok Türkiye', url='https://www.reebok.com.tr', kind='reebok', paths=['/ayakkabi']),
+    dict(id='beymen', name='Beymen', url='https://www.beymen.com', kind='beymen', paths=['/tr/erkek-ayakkabi-10011', '/tr/kadin-ayakkabi-10018', '/tr/kids-ayakkabi-canta-94269']),
 ]
 RUN_LOCK = threading.Lock()
 
@@ -349,6 +350,38 @@ def json_object(text):
     raise ValueError('Eksik ürün nesnesi')
 
 
+def beymen_rows(source, entries):
+    for p in entries:
+        categories = ' '.join(str(p.get(key, '')) for key in ('productSubCategory', 'producMainCategory'))
+        if 'ayakkab' not in categories.casefold() or not footwear('Ayakkabı ' + p.get('displayName', '')):
+            continue
+        if p.get('isOutOfStock') is not False or p.get('isPreOwned') is True:
+            continue
+        price = money(p.get('actualPrice'))
+        display = str(p.get('actualPriceText', '')).strip()
+        # Campaign prices can require buying multiple items; only the regular payable price is used.
+        if not re.fullmatch(r'[\d.,]+\s+TL', display) or money(display[:-2].strip().replace('.', '').replace(',', '.')) != price:
+            continue
+        variants = []
+        for v in p.get('sizes', []):
+            if v.get('inStock') is not True or not isinstance(v.get('sizeName'), str):
+                continue
+            size = v['sizeName'].strip().replace(',', '.').replace(' 1/3', ' ⅓').replace(' 2/3', ' ⅔')
+            size = re.sub(r'^(\d+) 1/2$', r'\1.5', size)
+            if not size:
+                continue
+            system = str(p.get('sizeSystem') or '').upper()
+            if system and system not in ('TR', 'EU', 'IT'):
+                size = system + ' ' + size
+            variants.append(dict(size=size, price=price, available=True))
+        images = p.get('images') or []
+        image = str(images[0]).replace('{width}', '480').replace('{height}', '640') if images else ''
+        # Beymen IDs are not manufacturer style codes, so they must not merge unrelated store offers.
+        row = product(source, p['productId'], p['displayName'], p.get('brandName'), p.get('variant'), image, p['productUrl'], variants)
+        if row:
+            yield row
+
+
 def collect_source(source, limit=120, progress=None):
     rows, seen, errors = {}, set(), []
     complete, requests = True, 0
@@ -380,6 +413,35 @@ def collect_source(source, limit=120, progress=None):
                     break
             else:
                 complete = False
+        elif source['kind'] == 'beymen':
+            for path in source['paths']:
+                for page_no in range(1, 251):
+                    text = read(source['url'] + path + f'?sayfa={page_no}')
+                    marker = 'BEYMEN.productListMain ='
+                    if marker not in text:
+                        raise ValueError('Beymen ürün listesi bulunamadı')
+                    payload = json.JSONDecoder().raw_decode(text.split(marker, 1)[1].lstrip())[0]
+                    if payload.get('currentPage') != page_no:
+                        raise ValueError('Beymen sayfa numarası doğrulanamadı')
+                    entries = payload['products']
+                    fingerprint = (path, tuple(p['productId'] for p in entries))
+                    if entries and fingerprint in seen:
+                        raise ValueError('Beymen katalog sayfalaması tekrarladı')
+                    seen.add(fingerprint)
+                    add(beymen_rows(source, entries))
+                    if progress:
+                        progress(source['id'], len(rows))
+                    if limit and len(rows) >= limit:
+                        complete = False
+                        break
+                    if page_no >= payload['totalPage']:
+                        break
+                    if not entries:
+                        raise ValueError('Beymen sayfası beklenmedik şekilde boş')
+                else:
+                    complete = False
+                if limit and len(rows) >= limit:
+                    break
         else:
             for path in source['paths']:
                 for page_no in range(1, 101):

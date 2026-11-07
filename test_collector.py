@@ -15,6 +15,46 @@ def source(sid):
 
 
 class CollectorTests(unittest.TestCase):
+    def beymen_product(self):
+        return {'productId': 123, 'displayName': 'XT-6 Sneaker', 'brandName': 'Salomon', 'variant': 'Gri',
+                'productUrl': '/tr/p_salomon-xt-6_123', 'productSubCategory': 'AYAKKABI', 'isOutOfStock': False,
+                'actualPrice': 11195, 'actualPriceText': '11.195 TL', 'promotedOrActualPrice': 8956,
+                'sizeSystem': 'TR', 'images': ['https://cdn.beymen.com/mnresize/{width}/{height}/shoe.jpg'],
+                'sizes': [{'sizeName': '44,5', 'inStock': True}, {'sizeName': '45', 'inStock': False},
+                          {'sizeName': '44 2/3', 'inStock': True}, {'sizeName': '46', 'inStock': 'true'}]}
+
+    def test_beymen_actual_price_checked_sizes_and_fraction_not_campaign(self):
+        p = self.beymen_product()
+        row = list(c.beymen_rows(source('beymen'), [p]))[0]
+        self.assertEqual(row['variants'], [{'size': '44.5', 'price': 1119500, 'available': True},
+                                           {'size': '44 ⅔', 'price': 1119500, 'available': True}])
+        self.assertEqual(row['brand'], 'SALOMON')
+        self.assertEqual(row['code'], '')
+        self.assertIn('/480/640/', row['image'])
+        p['sizeSystem'] = 'US'
+        self.assertEqual(list(c.beymen_rows(source('beymen'), [p]))[0]['variants'][0]['size'], 'US 44.5')
+
+    def test_beymen_rejects_unknown_stock_currency_mismatch_and_bags(self):
+        for changes in ({'actualPriceText': '11.195 USD'}, {'actualPrice': 8956}, {'isOutOfStock': True},
+                        {'isOutOfStock': None}, {'sizes': []}, {'productSubCategory': 'ÇANTA'},
+                        {'displayName': 'Ayakkabı bakım seti'}, {'isPreOwned': True}, {'productUrl': 'https://evil.example/shoe'}):
+            with self.subTest(changes=changes):
+                self.assertEqual(list(c.beymen_rows(source('beymen'), [self.beymen_product() | changes])), [])
+
+    def test_beymen_pagination_collects_each_page_and_fails_repeated_page(self):
+        src = source('beymen') | {'paths': ['/tr/erkek-ayakkabi-10011']}
+        def page(number):
+            p = self.beymen_product() | {'productId': number, 'productUrl': f'/tr/p_shoe_{number}'}
+            return 'BEYMEN.productListMain = ' + json.dumps({'currentPage': number, 'totalPage': 2, 'products': [p]}) + ';'
+        with patch.object(c, 'get', side_effect=[page(1), page(2)]) as get, patch.object(c.time, 'sleep'):
+            result = c.collect_source(src, limit=0)
+        self.assertEqual((result['status'], result['count'], result['requests']), ('ok', 2, 2))
+        self.assertTrue(get.call_args_list[1].args[0].endswith('?sayfa=2'))
+        with patch.object(c, 'get', side_effect=[page(1), page(1)]), patch.object(c.time, 'sleep'):
+            failed = c.collect_source(src, limit=0)
+        self.assertEqual(failed['status'], 'partial')
+        self.assertEqual(failed['errorCount'], 1)
+
     def test_money_rounds_decimal_and_rejects_invalid(self):
         self.assertEqual(c.money('5899.00003'), 589900)
         self.assertEqual(c.money('10.005'), 1001)

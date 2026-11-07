@@ -25,7 +25,8 @@ const catalogText = await (await get('/api/catalog')).text();
 const catalogHash = createHash('sha256').update(catalogText).digest('hex');
 if(process.argv[4]) assert.equal(catalogHash,process.argv[4],'The alias must serve the published catalog snapshot');
 const catalog = JSON.parse(catalogText);
-assert.equal(catalog.sources.length,10);
+assert.equal(catalog.sources.length,11);
+assert(catalog.sources.some(s=>s.id==='beymen' && s.status!=='error'));
 assert(catalog.products.length>100);
 for(const product of catalog.products) for(const offer of product.offers) for(const v of offer.variants) {
   assert(Number.isSafeInteger(v.price)&&v.price>0&&v.available===true);
