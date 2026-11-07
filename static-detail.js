@@ -1,12 +1,15 @@
-// GitHub Pages applies the same two-size selection to the exported offer rows.
+// GitHub Pages applies the same multi-size selection to the exported offer rows.
 'use strict';
 const form = document.querySelector('.detail-size');
-const selections = [...new Set(new URLSearchParams(location.search).getAll('beden').filter(Boolean).map(s=>s.slice(0,40).replace(',', '.')))].slice(0,2);
-form.querySelectorAll('select').forEach((select,i)=>{
-  const value=selections[i] || '';
-  if(value && ![...select.options].some(o=>o.value===value)) select.add(new Option(value+' — güncel stok yok',value));
-  select.value=value;
+const selections = [...new Set(new URLSearchParams(location.search).getAll('beden').filter(Boolean).map(s=>s.slice(0,40).replace(',', '.')))].slice(0,3);
+const picker=form.querySelector('[data-size-picker]');
+selections.forEach(value=>{
+  if([...picker.querySelectorAll('input')].some(input=>input.value===value)) return;
+  const label=document.createElement('label'),input=document.createElement('input'),text=document.createElement('span');
+  input.type='checkbox';input.name='beden';input.value=value;text.textContent=value.replace('.',',');
+  label.append(input,text);picker.querySelector('.size-options').append(label);
 });
+sizePicker.set(picker,selections);
 const prices=[];
 const formatter=new Intl.NumberFormat('tr-TR',{style:'currency',currency:'TRY'});
 for(const offer of document.querySelectorAll('.offer-detail')) {

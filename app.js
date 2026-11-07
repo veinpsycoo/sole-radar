@@ -6,8 +6,7 @@ const date = value => new Date(value).toLocaleString('tr-TR', {timeZone:'Europe/
 const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 const safe = value => {try {const u = new URL(value); return u.protocol === 'https:' ? u.href : '';} catch {return '';}};
 let data = {products:[], sources:[]}, shown = 36, matches = [], polling = false, expiryTimer;
-const ids = ['size','size2','brand'];
-const selectedSizes = () => [...new Set([$('size').value, $('size2').value].filter(Boolean))];
+const selectedSizes = () => sizePicker.values($('size-picker'));
 const sourceName = id => data.sources.find(s => s.id === id)?.name || id;
 
 function fresh(offer) {
@@ -22,8 +21,9 @@ function options(id, values, label) {
 function loadFilters() {
   options('brand', [...new Set(data.products.map(p => p.brand))].sort(), 'Tüm markalar');
   const sizes = [...new Set(data.products.flatMap(p => p.offers.filter(fresh).flatMap(o => o.variants.map(v => v.size))).filter(Boolean))].sort((a,b) => a.localeCompare(b,'tr',{numeric:true})).map(value => ({value, label:value.replace('.', ',')}));
-  options('size', sizes, 'Numaranı seç');
-  options('size2', sizes, 'İkinci numara (isteğe bağlı)');
+  const selected=selectedSizes();
+  $('size-options').innerHTML=sizes.map(({value,label})=>`<label><input type="checkbox" name="size" value="${esc(value)}"><span>${esc(label)}</span></label>`).join('');
+  sizePicker.set($('size-picker'),selected);
 }
 function sources() {
   $('source-list').innerHTML = data.sources.map(s => `<span class="source-chip ${s.status === 'error' ? 'failed' : ''}"><strong>${esc(s.name)}</strong><span>${s.status === 'error' ? 'Veri yok' : count(s.count)}</span></span>`).join('');
@@ -48,7 +48,7 @@ function card(p) {
   return `<article class="card"><a class="product-image" href="${esc(safe(best.url))}" target="_blank" rel="noopener noreferrer" aria-label="${stores} mağaza · ${esc(p.brand)} ${esc(p.name)} — ${esc(sourceName(best.sourceId))} mağazasında aç"><img ${img ? `src="${esc(img)}"` : 'hidden'} alt="${esc(p.name)}" loading="lazy" decoding="async" width="320" height="280"><span class="image-fallback">${esc(p.brand)}</span><span class="count-badge">${stores} mağaza</span></a><div class="card-body"><div class="brand-row"><strong>${esc(p.brand)}</strong><span>${esc(p.color)}</span></div><h3><a href="/sole-radar/urun/${encodeURIComponent(p.id)}/${selectedSizes().length ? '?'+new URLSearchParams(selectedSizes().map(size=>['beden',size])).toString() : ''}">${esc(p.name)}</a></h3><p class="code">${p.code ? esc(p.code) : 'Mağazaya özel ürün kaydı'}</p><p class="sizes">${sizes.length ? `Beden: ${esc(sizes.slice(0,8).join(' · ').replaceAll('.', ','))}${sizes.length>8 ? ` +${sizes.length-8}`:''}` : 'Beden bilgisi mağazada'}</p><div class="price-row"><div><strong>${currency.format(p.price/100)}</strong><small>${esc(sourceName(best.sourceId))}${p.offers.some(o=>o.variants.some(v=>v.price!==p.price)) ? ' · başlayan fiyat' : ''}</small></div><a class="go" href="${esc(safe(best.url))}" target="_blank" rel="noopener noreferrer" aria-label="${esc(p.name)} mağazada gör">↗</a></div><details class="offers"><summary>Teklifler ve bedenler (${p.offers.length})</summary>${p.offers.map(o=>`<div class="offer"><div><a href="${esc(safe(o.url))}" target="_blank" rel="noopener noreferrer">${esc(sourceName(o.sourceId))} ↗</a><small>${o.variants.map(v=>`${esc(v.size.replace('.', ',') || 'Beden doğrulanmadı')}: ${currency.format(v.price/100)}`).join(' · ')}</small><small>${date(o.checkedAt)} TSİ</small></div></div>`).join('')}</details></div></article>`;
 }
 function draw() {
-  $('grid').innerHTML = matches.slice(0,shown).map(card).join('') || (selectedSizes().length ? '<div class="empty"><strong>Bu seçimde stoklu ayakkabı bulunamadı.</strong><p>Başka bir numara veya marka seçebilirsin.</p></div>' : '<div class="empty"><strong>Önce ayak numaranı seç.</strong><p>İstersen ikinci numaranı da ekle. En uygun stoklu teklifler burada görünecek.</p></div>');
+  $('grid').innerHTML = matches.slice(0,shown).map(card).join('') || (selectedSizes().length ? '<div class="empty"><strong>Bu seçimde stoklu ayakkabı bulunamadı.</strong><p>Başka bir numara veya marka seçebilirsin.</p></div>' : '<div class="empty"><strong>Önce ayak numaranı seç.</strong><p>Aynı kutudan üç numaraya kadar seçebilirsin. En uygun stoklu teklifler burada görünecek.</p></div>');
   $('grid').querySelectorAll('img').forEach(img => {img.addEventListener('error',()=>{img.hidden=true;}); if(img.complete && !img.naturalWidth) img.hidden=true;});
   $('grid').setAttribute('aria-busy','false');
   $('result-count').textContent = selectedSizes().length ? `${count(matches.length)} model · En düşük fiyattan · ${count(Math.min(shown,matches.length))} gösteriliyor` : 'Sonuçlar için numaranı seç' ;
@@ -58,7 +58,8 @@ function filter(updateURL=true) {
   shown=36; matches=selectProducts(); sources(); draw();
   if (updateURL) {
     const params = new URLSearchParams();
-    ids.forEach(id=>{if($(id).value) params.set(id,$(id).value);});
+    selectedSizes().forEach(size=>params.append('size',size));
+    if($('brand').value) params.set('brand',$('brand').value);
     history.replaceState(null,'',location.pathname+(params.size?'?'+params:'')+location.hash);
   }
 }
@@ -68,7 +69,8 @@ async function load() {
     if (!response.ok) throw new Error('Katalog okunamadı');
     data = await response.json(); loadFilters();
     const params=new URLSearchParams(location.search);
-    ids.forEach(id=>{if(params.has(id)) $(id).value=id.startsWith('size') ? params.get(id).replace(',', '.') : params.get(id);});
+    sizePicker.set($('size-picker'),[...params.getAll('size'),...params.getAll('size2')]);
+    if(params.has('brand')) $('brand').value=params.get('brand');
     const active=data.products.filter(p=>p.offers.some(fresh));
     window.dispatchEvent(new Event('catalog-ready'));
     $('product-count').textContent=count(active.length);
