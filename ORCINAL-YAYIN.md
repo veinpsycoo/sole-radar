@@ -41,7 +41,19 @@ Bunlar iş için ayrılan süre dilimleridir. Mağaza onayı veya test süresi t
 
 ## Telefona teslim edilen test sürümleri
 
-- [Telefonda aç](https://orcinal-go.aikolejim.workers.dev/) sayfasındaki iPhone ve Android bağlantıları Expo Go içindir. İmzalar, uygulama dosyaları ve Android’de ana sayfa ile Hesabım ekranı doğrulandı. Bu önizlemenin mevcut imzası 7 Aralık 2026 saat 00.54 TSİ’ye kadar geçerli.
+- [Telefonda aç](https://orcinal-go.aikolejim.workers.dev/) sayfasındaki iPhone ve Android bağlantıları Expo Go içindir. İmzalar, uygulama dosyaları ve Android’de ana sayfa ile Hesabım ekranı doğrulandı. Bu önizlemenin mevcut imzası 7 Aralık 2026 saat 01.08 TSİ’ye kadar geçerli.
 - [İmzalı Android test sürümü](https://expo.dev/artifacts/eas/DvZuj5igE0aG_jsZjVqWSdur0FAehirFVTXyexWgTEo.apk) temiz bir Android sanal cihazına kuruldu. Paket sertifikası doğrulandı, Firebase’e kaydedildi ve uygulamadaki düğmeden Google’ın yerel hesap giriş ekranına geçildi. Gerçek kullanıcı hesabıyla oturum, cihazlar arası eşitleme ve bildirimler fiziksel cihaz testinde tamamlanacak.
 - [iOS simülatör derlemesi](https://expo.dev/accounts/veinpsyco/projects/sole-radar/builds/14863ee1-2fce-47ff-9419-c07c8d8c4b30) üretildi. Arşivde Orcinal adı, uygulama ikonu, açılış ekranı ve Google geri dönüş şeması doğrulandı. Firebase Apple sağlayıcısı, Apple üyeliği, dağıtım imzası ve gerçek iPhone testleri açık.
 - Mobil tip kontrolü, lint ve Expo Doctor kontrolleri geçti. Üretim bağımlılıkları taramasında bilinen açık bulunmadı. Expo Go'da Google düğmesi web profilini açar.
+- Android testinde üç numara seçildi, 3.773 teklif listelendi ve ilk sıradaki Reebok ayakkabısına dokununca mağazanın doğrudan ürün adresi açıldı. Teklif sayısı ve fiyatları kontrol anına aittir.
+
+## Mağaza gizlilik formu için hazırlanan yanıtlar
+
+| Akış | Gönderilen bilgiler | Kullanım ve kullanıcı kontrolü |
+|---|---|---|
+| İsteğe bağlı hesap | Ad, e-posta ve hesap kimliği | Kimlik doğrulama ve cihazlar arası profil. Kullanıcı uygulamada veya webde hesap silmeyi başlatabilir. |
+| Favoriler ve ayak numaraları | Kullanıcının seçtiği ürün kodları ve en fazla üç EU numarası | Kişiselleştirme. Ürünler kaldırılabilir, numaralar değiştirilebilir. |
+| İsteğe bağlı alarm | Expo bildirim anahtarı, ürün, beden ve hedef fiyat | Bildirim iletimi. Cihazdaki Alarmlarım ekranından silinebilir. En fazla 90 gün tutulur. |
+| Fotoğrafla model arama | Fotoğraf cihaz içinde işlenir | Görsel arama akışı resmi sunucuya yüklemez. |
+
+İncelenen iOS simülatör paketinde uygulamanın gizlilik manifesti reklam amaçlı takibi kapalı gösteriyor. Uygulama ve bağımlılık manifestlerinde UserDefaults, dosya zamanı, sistem açılış zamanı ve disk alanı için API beyanları var. Google Sign-In manifesti kendi hizmetinin kimlik, cihaz ve kullanım verilerini ayrıca listeliyor. App Store formu için dağıtım arşivinden birleştirilmiş gizlilik raporu al ve sağlayıcının fiilî kullanımıyla karşılaştır. Reklam takibi ile dolandırıcılık önleme amaçlı veri kullanımı ayrı sorulardır. [Google giriş SDK’sı gizlilik açıklaması](https://developers.google.com/identity/sign-in/ios/app-privacy)
