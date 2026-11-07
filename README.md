@@ -4,6 +4,10 @@ Türkiye'deki tanımlı ayakkabı mağazalarının stok, beden ve fiyatlarını 
 
 **Gösterim sürümü:** https://sole-radar-preview.vercel.app
 
+**GitHub üzerinden site:** https://veinpsycoo.github.io/sole-radar/
+
+Depoda `main` dalı GitHub Pages çıktısı, `source` dalı web uygulamasının kaynak kodudur. GitHub sürümü son dışa aktarılan katalogdur; yerel altı saatlik Vercel görevi GitHub'ı otomatik güncellemez. 24 saati geçen teklifler gizlenir.
+
 ## Yerel web
 
 Python 3.11+; web ve veri toplayıcı standart kütüphaneyle çalışır.
@@ -47,7 +51,7 @@ Kaynak/lisans notları: `THIRD_PARTY.md`. Kullanımdan kaldırılan 9060 görsel
 
 ## iOS öncelikli uygulama
 
-`mobile/` Expo Router uygulamasıdır. Arama, marka/beden filtresi, ürün ayrıntısı, güncel teklifler ve mağazaya geçiş bulunur. `mobile/README.md` çalıştırma ve doğrulama adımlarını içerir. iOS paketi üretildi; fiziksel iPhone ve TestFlight testi yapılmadı. Android aynı kaynak yapısını kullanır.
+Yerel çalışma alanındaki `mobile/` ayrı Expo Router projesidir; bu web kaynak dalına dahil değildir. Arama, marka/beden filtresi, ürün ayrıntısı, güncel teklifler ve mağazaya geçiş bulunur. iOS paketi üretildi; fiziksel iPhone ve TestFlight testi yapılmadı.
 
 ## Gerçek yayın öncesinde
 
