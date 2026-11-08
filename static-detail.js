@@ -11,6 +11,7 @@ selections.forEach(value=>{
 });
 sizePicker.set(picker,selections);
 const prices=[];
+const visiblePrices=new Map();
 const formatter=new Intl.NumberFormat('tr-TR',{style:'currency',currency:'TRY'});
 for(const offer of document.querySelectorAll('.offer-detail')) {
   const offerPrices=[];
@@ -24,6 +25,10 @@ for(const offer of document.querySelectorAll('.offer-detail')) {
       if(Number.isFinite(price)&&price>0) {prices.push(price);offerPrices.push(price);}else row.hidden=true;
     }
   });
+  const storeUrl=offer.querySelector('h3 a').getAttribute('href');
+  const amounts=visiblePrices.get(storeUrl) || new Set();
+  offerPrices.forEach(price=>amounts.add(price));
+  visiblePrices.set(storeUrl,amounts);
   offer.hidden=rows.every(row=>row.hidden);
   offer.dataset.price=offerPrices.length ? Math.min(...offerPrices) : Infinity;
 }
@@ -32,3 +37,15 @@ const lead=document.querySelector('.product-detail .lead');
 lead.textContent=prices.length ? formatter.format(Math.min(...prices))+'’den başlayan' : 'Seçtiğin bedenlerde güncel teklif bulunmuyor.';
 lead.hidden=false;
 document.querySelector('#static-status').textContent=selections.length ? selections.join(' / ').replaceAll('.',',')+' beden için güncel teklifler.' : 'Tüm stoklu bedenler gösteriliyor.';
+
+const productData=document.getElementById('product-data');
+if(productData && prices.length) {
+  const product=JSON.parse(productData.textContent);
+  product.offers=product.offers.filter(offer=>visiblePrices.get(offer.url)?.has(Number(offer.price)));
+  if(product.offers.length) {
+    const schema=document.createElement('script');
+    schema.type='application/ld+json';
+    schema.textContent=JSON.stringify(product);
+    document.head.append(schema);
+  }
+}
