@@ -50,5 +50,23 @@ class PreviewTests(unittest.TestCase):
                 self.assertEqual([c.args[0] for c in cli.call_args_list],['deploy','inspect'])
 
 
+    def test_production_promotes_only_a_ready_matching_catalog(self):
+        url = 'https://orcinal-abc123-veinpsyco.vercel.app'
+        snapshot = b'{"generatedAt":"test-timestamp"}'
+        state = dict(target='production',readyState='READY',name='orcinal',url=url.split('//')[1])
+        with TemporaryDirectory() as folder:
+            root=Path(folder)
+            link=root/'data/production-web/.vercel/project.json'
+            link.parent.mkdir(parents=True)
+            link.write_text('{"projectName":"orcinal"}')
+            for ready in (True,False):
+                with self.subTest(ready=ready), patch.object(publish_preview,'ROOT',root), patch.object(publish_preview,'build',return_value=snapshot), patch.object(publish_preview,'cli',side_effect=[url,json.dumps(state),json.dumps(dict(catalogAvailable=ready,generatedAt='test-timestamp')),'']) as cli:
+                    if ready:
+                        publish_preview.publish_production('https://orcinal.test')
+                        self.assertEqual(cli.call_args.args,('alias','set',url,'orcinal.test'))
+                    else:
+                        with self.assertRaises(ValueError):publish_preview.publish_production('https://orcinal.test')
+                        self.assertNotIn('alias',[c.args[0] for c in cli.call_args_list])
+
 if __name__ == '__main__':
     unittest.main()

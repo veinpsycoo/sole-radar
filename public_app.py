@@ -51,6 +51,8 @@ def application(environ, start_response):
     host = urlsplit(site_url()).netloc
     hosts = {host} if host else {os.environ.get('VERCEL_URL', ''), os.environ.get('PREVIEW_HOST', '')} - {''}
     path = environ.get('PATH_INFO', '/')
+    if host and path == '/readyz' and os.environ.get('VERCEL_URL'):
+        hosts.add(os.environ['VERCEL_URL'])
     method = environ.get('REQUEST_METHOD', 'GET')
     if environ.get('HTTP_HOST') not in hosts:
         status, body, mime = 403, b'Invalid host', 'text/plain'

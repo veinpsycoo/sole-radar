@@ -5,10 +5,10 @@ import json
 import signal
 import threading
 from collector import CATALOG, refresh
-from publish_preview import publish
+from publish_preview import publish, publish_production
 
 
-def run(interval=21600, once=False, publish_after_refresh=False):
+def run(interval=21600, once=False, publish_after_refresh=False, production_origin=None):
     stopping = threading.Event()
     for signum in (signal.SIGINT, signal.SIGTERM):
         signal.signal(signum, lambda *_: stopping.set())
@@ -25,10 +25,13 @@ def run(interval=21600, once=False, publish_after_refresh=False):
             data = refresh(limit=0)
             state['generatedAt'] = data['generatedAt']
             state['sources'] = {s['id']: s['status'] for s in data['sources']}
-            if publish_after_refresh:
+            if publish_after_refresh or production_origin:
                 if not data['products'] or not any(s['status'] != 'error' for s in data['sources']):
                     raise ValueError('No usable catalog to publish')
-                publish()
+                if publish_after_refresh:
+                    publish()
+                if production_origin:
+                    publish_production(production_origin)
                 state['publishedAt'] = datetime.now(timezone.utc).isoformat()
         except Exception as exc:
             state['error'] = type(exc).__name__ + ': ' + str(exc)[:180]
@@ -46,8 +49,9 @@ if __name__ == '__main__':
     parser.add_argument('--interval', type=int, default=21600, help='Seconds between completed scans (minimum 1 hour)')
     parser.add_argument('--once', action='store_true')
     parser.add_argument('--publish', action='store_true', help='Publish a verified preview after each successful scan')
+    parser.add_argument('--production-origin', help='Update this configured HTTPS domain after each successful scan')
     args = parser.parse_args()
     if args.interval < 3600:
         parser.error('Minimum interval is 3600 seconds')
-    if run(args.interval, args.once, args.publish) is False:
+    if run(args.interval, args.once, args.publish, args.production_origin) is False:
         raise SystemExit(1)
