@@ -1,5 +1,5 @@
 """Static export of the preview for GitHub Pages (veinpsycoo.github.io/sole-radar/), because vercel.app is blocked on some TR networks."""
-import json, re, shutil
+import json, os, re, shutil
 from pathlib import Path
 import site_pages as s
 from collector import ROOT, CATALOG
@@ -26,6 +26,7 @@ def write(path, body):
 
 
 def main():
+    os.environ['PREVIEW_HOST'] = 'veinpsycoo.github.io'
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT / '.github/workflows').mkdir(parents=True, exist_ok=True)
     shutil.copy2(ROOT / '.github/workflows/pages.yml', OUT / '.github/workflows/pages.yml')
@@ -44,8 +45,8 @@ def main():
                 body = body.replace('<section class="offer-detail">', '<section class="offer-detail" hidden>')
                 body = body.replace('<p class="lead">', '<p class="lead" hidden>')
                 body = body.replace('<form class="detail-size"', '<p id="static-status" role="status">Beden ve güncel stok kontrol ediliyor…</p><form class="detail-size"')
-                body = body.replace('</body>', '<script src="/static-detail.js?v=sizes2" defer></script><noscript>Güncel beden ve fiyatlar için JavaScript gerekli. Mağazada kontrol et.</noscript></body>')
-                body = re.sub(r'<script type="application/ld\+json">.*?</script>', '', body)
+                body = body.replace('</body>', '<script src="/static-detail.js?v=stock3" defer></script><noscript>Güncel beden ve fiyatlar için JavaScript gerekli. Mağazada kontrol et.</noscript></body>')
+                body = body.replace('<script type="application/ld+json">', '<script type="application/json" id="product-data">')
             write(p, body); n += 1
     active = sum(bool(s.fresh_offers(p, data)) for p in data['products'])
     for number in range(1, (active + 59) // 60 + 1):

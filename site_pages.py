@@ -72,17 +72,25 @@ def stamp(value):
         return 'Tarih doğrulanamadı'
 
 
+def public_base():
+    preview = os.environ.get('PREVIEW_HOST', '') or os.environ.get('VERCEL_URL', '')
+    if site_url():
+        return site_url()
+    if preview == 'veinpsycoo.github.io':
+        return 'https://veinpsycoo.github.io/sole-radar'
+    return 'https://' + preview if re.fullmatch(r'[a-zA-Z0-9.-]+\.vercel\.app', preview) else ''
+
+
 def metadata(title, description, path, schema=None, index=True):
     base = site_url()
-    preview = os.environ.get('PREVIEW_HOST', '') or os.environ.get('VERCEL_URL', '')
-    sharing_base = base or ('https://' + preview if re.fullmatch(r'[a-zA-Z0-9.-]+\.vercel\.app', preview) else '')
+    sharing_base = public_base()
     url = sharing_base + path if sharing_base else ''
     result = f'<meta name="description" content="{escape(description)}"><meta name="robots" content="{"index,follow" if base and index else "noindex,follow"}">'
     if base:
         result += f'<link rel="canonical" href="{escape(base + path)}">'
     if url:
         result += f'<meta property="og:url" content="{escape(url)}">'
-    kind = 'article' if schema and schema.get('@type') == 'Article' else 'website'
+    kind = 'article' if schema and schema.get('@type') in ('Article', 'BlogPosting') else 'website'
     result += f'<meta property="og:title" content="{escape(title)}"><meta property="og:description" content="{escape(description)}"><meta property="og:type" content="{kind}"><meta property="og:site_name" content="Orcinal"><meta property="og:locale" content="tr_TR"><meta name="twitter:card" content="{"summary_large_image" if sharing_base else "summary"}">'
     if sharing_base:
         result += f'<meta property="og:image" content="{sharing_base}/vendor/social-card.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Orcinal — Aradığın çift. En iyi fiyatıyla."><meta name="twitter:image" content="{sharing_base}/vendor/social-card.png">'
@@ -134,10 +142,13 @@ def resolve(path, query=''):
     article = next((a for a in ARTICLES if path == '/blog/' + a['slug'] + '/'), None)
     if article:
         a = article
-        body = f'<article class="prose"><a href="/blog/">← Tüm rehberler</a><p class="eyebrow">{escape(a["category"])}</p><h1>{escape(a["title"])}</h1><p class="byline">Orcinal · <time datetime="{a["date"]}">{a["date"]}</time></p><p class="lead">{escape(a["intro"])}</p>'
+        body = f'<article class="prose"><a href="/blog/">← Tüm rehberler</a><p class="eyebrow">{escape(a["category"])}</p><h1>{escape(a["title"])}</h1><p class="byline"><a href="/hakkimizda/">Orcinal</a> · <time datetime="{a["date"]}">{a["date"]}</time></p><p class="lead">{escape(a["intro"])}</p>'
         body += ''.join(f'<section><h2>{escape(s["title"])}</h2><p>{escape(s["text"])}</p></section>' for s in a['sections'])
         body += '<h2>İlgili sayfalar</h2><ul>' + ''.join(f'<li><a href="{escape(l["url"])}">{escape(l["label"])}</a></li>' for l in a['links']) + '</ul></article>'
-        schema = {'@context': 'https://schema.org', '@type': 'Article', 'headline': a['title'], 'description': a['description'], 'datePublished': a['date'], 'dateModified': a['date'], 'inLanguage': 'tr-TR', 'author': {'@type': 'Organization', 'name': 'Orcinal', 'url': site_url() + '/hakkimizda/'}, 'publisher': {'@type': 'Organization', 'name': 'Orcinal'}}
+        org = {'@type': 'Organization', 'name': 'Orcinal', 'url': public_base() + '/hakkimizda/'}
+        schema = {'@context': 'https://schema.org', '@type': 'BlogPosting', 'headline': a['title'],
+                  'description': a['description'], 'datePublished': a['date'], 'articleSection': a['category'],
+                  'inLanguage': 'tr-TR', 'mainEntityOfPage': public_base() + path, 'author': org, 'publisher': org}
         return 200, page(a['title'], a['description'], path, body, schema), HTML
     if path in ('/yontem/', '/hakkimizda/', '/gizlilik/'):
         titles = {'/yontem/': 'Fiyatları nasıl karşılaştırıyoruz?', '/hakkimizda/': 'Orcinal hakkında', '/gizlilik/': 'Gizlilik ve yerel tercihler'}
@@ -227,10 +238,16 @@ def resolve(path, query=''):
     for o in offers:
         body += f'<section class="offer-detail"><h3><a href="{escape(o["url"])}" rel="noopener noreferrer">{escape(SOURCE_NAMES.get(o["sourceId"], o["sourceId"]))} ↗</a></h3><p>Son kontrol: <time datetime="{escape(o["checkedAt"])}">{stamp(o["checkedAt"])}</time></p><ul class="sizes-list">' + ''.join(f'<li>{escape(v.get("size") or "Beden doğrulanmadı")} <strong>{money(v["price"])}</strong></li>' for v in o['variants']) + '</ul></section>'
     body += '<p><a href="/yontem/">Verinin kapsamını ve karşılaştırma yöntemini oku.</a> Satın almadan önce mağazada ürün kodunu, bedeni ve son tutarı kontrol et.</p>'
-    schema = {'@context': 'https://schema.org', '@type': 'Product', 'name': p['name'], 'image': safe_url(p['image']), 'brand': {'@type': 'Brand', 'name': p['brand']}}
+    schema = {'@context': 'https://schema.org', '@type': 'Product', 'name': p['name'],
+              'model': p['name'], 'brand': {'@type': 'Brand', 'name': p['brand']}}
+    if image := safe_url(p['image']):
+        schema['image'] = image
     if p.get('code'):
         schema['sku'] = p['code']
-    if offers:
-        prices = [v['price'] for o in offers for v in o['variants']]
-        schema['offers'] = {'@type': 'AggregateOffer', 'priceCurrency': 'TRY', 'lowPrice': f'{min(prices)/100:.2f}', 'highPrice': f'{max(prices)/100:.2f}', 'offerCount': len(offers)}
-    return 200, page(p['name'] + ' fiyat karşılaştırması', f'{p["brand"]} {p["name"]}: mağaza teklifleri, stoklu bedenler ve kontrol tarihleri.', path, body, schema, not selected_size and len({o['sourceId'] for o in offers}) >= 2), HTML
+    schema['offers'] = sorted((
+        {'@type': 'Offer', 'priceCurrency': 'TRY', 'price': f'{price / 100:.2f}',
+         'availability': 'https://schema.org/InStock', 'url': o['url'],
+         'seller': {'@type': 'Organization', 'name': SOURCE_NAMES.get(o['sourceId'], o['sourceId'])}}
+        for o in offers for price in sorted({v['price'] for v in o['variants']})
+    ), key=lambda offer: float(offer['price']))
+    return 200, page(p['name'] + ' fiyat karşılaştırması', f'{p["brand"]} {p["name"]}: mağaza teklifleri, stoklu bedenler ve kontrol tarihleri.', path, body, schema if offers else None, not selected_size and len({o['sourceId'] for o in offers}) >= 2), HTML

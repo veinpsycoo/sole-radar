@@ -80,6 +80,10 @@ class SiteTests(unittest.TestCase):
             r = self.call('/blog/' + article['slug'] + '/')
             self.assertEqual(r['status'], 200)
             html = r['body'].decode()
+            blog = json.loads(re.search(r'application/ld\+json">(.*?)</script>', html)[1])
+            self.assertEqual(blog['@type'], 'BlogPosting')
+            self.assertEqual(blog['mainEntityOfPage'], 'https://example.test/blog/' + article['slug'] + '/')
+            self.assertEqual(blog['datePublished'], article['date'])
             self.assertIn(article['sections'][0]['text'], html)
             self.assertIn('rel="canonical"', html)
             self.assertIn("'sha256-", r['headers']['Content-Security-Policy'])
@@ -118,9 +122,13 @@ class SiteTests(unittest.TestCase):
         with patch.object(pages, 'catalog', return_value=self.data):
             status, html, _ = pages.resolve('/urun/' + p['id'] + '/')
         self.assertEqual(status, 200)
+        product = json.loads(re.search(r'application/ld\+json">(.*?)</script>', html)[1])
+        self.assertEqual(product['model'], p['name'])
+        self.assertEqual(product['offers'][0]['availability'], 'https://schema.org/InStock')
+        self.assertEqual(product['offers'][0]['url'], self.offer['url'])
         self.assertIn('&lt;Shoe&gt;', html)
         self.assertIn('1.299,99 ₺', html)
-        self.assertIn('"lowPrice": "1299.99"', html)
+        self.assertIn('"price": "1299.99"', html)
         self.assertIn('noindex,follow', html)  # Single-store pages aren't SEO comparison pages.
 
     def test_three_sizes_use_cheapest_matching_stock_and_preserve_selection(self):
@@ -138,8 +146,8 @@ class SiteTests(unittest.TestCase):
         self.assertIn('value="45" checked', html)
         self.assertIn('value="46" checked', html)
         self.assertNotIn('İkinci numara', html)
-        self.assertIn('"lowPrice": "700.00"', html)
-        self.assertIn('"highPrice": "900.00"', html)
+        self.assertIn('"price": "700.00"', html)
+        self.assertIn('"price": "900.00"', html)
         self.assertNotIn('<li>42 ', html)
         self.assertNotIn('2,00 ₺', html)
         self.assertEqual(len(self.offer['variants']), 4)
@@ -152,12 +160,12 @@ class SiteTests(unittest.TestCase):
             html = pages.resolve('/urun/' + p['id'] + '/', 'beden=42')[1]
             missing = pages.resolve('/urun/' + p['id'] + '/', 'beden=%3Ctest%3E')[1]
         self.assertIn('value="42" checked', html)
-        self.assertIn('"lowPrice": "1299.99"', html)
+        self.assertIn('"price": "1299.99"', html)
         self.assertNotIn('999,99', html)
         self.assertIn('noindex,follow', html)
         self.assertNotIn('value="&lt;test&gt;"', missing)
         self.assertNotIn('<test>', missing)
-        self.assertNotIn('AggregateOffer', missing)
+        self.assertNotIn('application/ld+json', missing)
         self.assertEqual(len(self.offer['variants']), 2)
 
 
