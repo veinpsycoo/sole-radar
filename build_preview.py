@@ -1,12 +1,16 @@
-"""Package only public app files and a catalog snapshot for Vercel Preview."""
+"""Package only public app files and a catalog snapshot for Vercel deployments."""
 from pathlib import Path
 import json
 import shutil
 from collector import ROOT, CATALOG
+from site_pages import site_url
 
 
-def build():
-    destination = ROOT / 'preview'
+def build(production_origin=None):
+    origin = site_url(production_origin) if production_origin is not None else ''
+    if production_origin is not None and not origin:
+        raise ValueError('A production deployment requires an HTTPS origin')
+    destination = ROOT / ('data/production-web' if origin else 'preview')
     for folder in ('api', 'web', 'public/vendor', 'content', 'data'):
         (destination / folder).mkdir(parents=True, exist_ok=True)
     for name in ('collector.py', 'site_pages.py', 'public_app.py', 'live_quote.py', 'refresh_guard.py', 'releases.py', 'radar_data.py'):
@@ -41,7 +45,7 @@ def build():
     config = {
         'version': 2,
         'framework': None,
-        'env': {'PREVIEW_HOST': 'sole-radar-preview.vercel.app'},
+        'env': {'SITE_URL': origin} if origin else {'PREVIEW_HOST': 'sole-radar-preview.vercel.app'},
         'functions': {'api/index.py': {'includeFiles': '{web/**,content/**,data/catalog.json,data/radar/releases.json}', 'maxDuration': 30}},
         'routes': [
             {'src': '/(.*)', 'headers': {'X-Robots-Tag': 'noindex, nofollow', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer'}, 'continue': True},
@@ -51,12 +55,18 @@ def build():
             {'src': '/(.*)', 'dest': '/api/index.py'}
         ]
     }
+    if origin:
+        del config['routes'][0]['headers']['X-Robots-Tag']
+        config['routes'][2]['headers']['X-Robots-Tag'] = 'noindex'
     (destination / 'vercel.json').write_text(json.dumps(config, indent=2), encoding='utf-8')
     # No keys, local logs, source caches, or user files belong in the deployment.
     (destination / '.vercelignore').write_text('.env*\n.vercel\n__pycache__\n', encoding='utf-8')
-    print(f'Preview package ready: {destination}')
+    print(f'Web package ready: {destination}')
     return snapshot
 
 
 if __name__ == '__main__':
-    build()
+    import argparse
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--production-origin', help='Build for a purchased HTTPS domain')
+    build(parser.parse_args().production_origin)

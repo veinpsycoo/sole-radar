@@ -5,43 +5,9 @@ from pathlib import Path
 import re
 
 from site_pages import catalog, fresh_offers, shoe_size
-from collector import CATALOG, fetch_once
+from collector import CATALOG
 
 TR = timezone(timedelta(hours=3))
-POLICY = 'https://www.vitruta.com/pages/sss'
-
-
-def shipping_rule():
-    from html import unescape
-    try:
-        page = unescape(re.sub(r'<[^>]+>', ' ', fetch_once(POLICY, timeout=9)))
-        page = ' '.join(page.lower().split())
-        free = re.search(r'([\d.]+) tl ve üzeri alışverişlerde kargo ücretsiz', page)
-        fee = re.search(r'([\d.]+) tl altı siparişlerde ise kargo ücretimiz sabit ([\d.]+) tl', page)
-        if free and fee and free[1] == fee[1]:
-            return {'sourceId':'vitruta', 'threshold':int(free[1].replace('.', ''))*100,
-                    'fee':int(fee[2].replace('.', ''))*100, 'url':POLICY,
-                    'checkedAt':datetime.now(timezone.utc).isoformat()}
-    except (OSError, ValueError):
-        pass
-    return None
-
-
-def shipping_rules():
-    rules = []
-    vitruta = shipping_rule()
-    if vitruta:
-        rules.append(vitruta)
-    url = 'https://www.sneaksup.com/sss'
-    try:
-        from html import unescape
-        text = ' '.join(unescape(re.sub(r'<[^>]+>', ' ', fetch_once(url, timeout=9))).lower().split())
-        threshold = re.search(r'([\d.]+) tl ve üzeri siparişlerinde kargo ücreti bizden', text)
-        if threshold:
-            rules.append({'sourceId':'sneaksup','threshold':int(threshold[1].replace('.',''))*100,'fee':None,'url':url,'checkedAt':datetime.now(timezone.utc).isoformat()})
-    except (ValueError, OSError):
-        pass
-    return rules
 
 
 def record(data, directory, at=None):
@@ -92,9 +58,6 @@ def record(data, directory, at=None):
 
 def update(data, directory):
     record(data, directory)
-    temp = directory/'shipping.tmp'
-    temp.write_text(json.dumps(shipping_rules()), encoding='utf-8')
-    temp.replace(directory/'shipping.json')
     from releases import update_releases
     update_releases(directory)
 

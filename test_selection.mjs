@@ -58,9 +58,7 @@ assert.deepEqual(ranks(),[40000,60000,70000]);
 assert(!vm.runInContext('applyQuote(fixture.products[0],fixture.products[0].offers[0],{...quote,url:"https://other.test"})',context));
 o0.variants=[variant('42',100),variant('44.5',90000),variant('45',80000,false)];
 context.radarOffer={sourceId:'b',variants:[variant('44.5',399900),variant('45',400000)],url:'https://store.example/product',price:399900};
-vm.runInContext("shippingRules=[{sourceId:'b',threshold:400000,fee:7900,checkedAt:new Date().toISOString()}];$('with-shipping').checked=true;",context);
-assert.deepEqual(JSON.parse(vm.runInContext("JSON.stringify(standings([{id:'shoe',name:'shoe',offers:[radarOffer]}]).map(r=>[r.price,r.sizes]))",context)),[[400000,['45']]]);
-vm.runInContext("$('with-shipping').checked=false",context);
+assert.deepEqual(JSON.parse(vm.runInContext("JSON.stringify(standings([{id:'shoe',name:'shoe',offers:[radarOffer]}]).map(r=>[r.price,r.sizes]))",context)),[[399900,['44.5']]]);
 console.log('Size-first filtering: two sizes, brand, cheapest eligible store, stock/freshness, empty state and detail link passed.');
 
 context.fixture.products.push({id:'third-size',name:'Third',brand:'SALOMON',offers:[offer('b',[variant('46',55000)])]});
@@ -78,3 +76,6 @@ console.log('Three checked sizes, third-size prices, limit and deselection passe
 
 assert.deepEqual(JSON.parse(JSON.stringify(vm.runInContext("availableBrands(['44.5'])",context))),['SALOMON']);
 assert.deepEqual(JSON.parse(JSON.stringify(vm.runInContext("availableBrands(['50'])",context))),[]);
+
+context.localStorage={getItem:()=>JSON.stringify(['?size=45&brand=SALOMON&kargo=1','?size=45&brand=SALOMON','?kargo=1'])};
+assert.deepEqual(Array.from(vm.runInContext('savedRankings()',context)),['?size=45&brand=SALOMON']);

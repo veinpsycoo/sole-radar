@@ -57,3 +57,14 @@ Bunlar iş için ayrılan süre dilimleridir. Mağaza onayı veya test süresi t
 | Fotoğrafla model arama | Fotoğraf cihaz içinde işlenir | Görsel arama akışı resmi sunucuya yüklemez. |
 
 İncelenen iOS simülatör paketinde uygulamanın gizlilik manifesti reklam amaçlı takibi kapalı gösteriyor. Uygulama ve bağımlılık manifestlerinde UserDefaults, dosya zamanı, sistem açılış zamanı ve disk alanı için API beyanları var. Google Sign-In manifesti kendi hizmetinin kimlik, cihaz ve kullanım verilerini ayrıca listeliyor. App Store formu için dağıtım arşivinden birleştirilmiş gizlilik raporu al ve sağlayıcının fiilî kullanımıyla karşılaştır. Reklam takibi ile dolandırıcılık önleme amaçlı veri kullanımı ayrı sorulardır. [Google giriş SDK’sı gizlilik açıklaması](https://developers.google.com/identity/sign-in/ios/app-privacy)
+
+## Alan adı ve Apple üyeliği alındığında
+
+1. Vercel’de satın alınan alan adını projeye ekle ve alan adı sağlayıcısında Vercel’in o alan için verdiği DNS değerini kullan. HTTPS doğrulamasını bekle. Birincil adresi çıplak alan adı veya www olarak seç.
+2. Gerçek HTTPS adresiyle `python build_preview.py --production-origin https://ALAN-ADI` çalıştır. Üretim paketi `data/production-web` içine yazılır. Vercel’e bu dizini bağla. Varsayılan `python build_preview.py` deneme paketini üretmeye devam eder.
+3. Alan adını Firebase Authentication yetkili alan adlarına ekle. Canlı Google kaydı, çıkış, favori eşitlemesi ve yeniden doğrulamayla silmeyi kendi telefonunda dene.
+4. Tarama sonrasında üretim paketini de yeniden yayımlayan görevi etkinleştir. İlk yenilemede `/api/status` zaman damgasının ilerlediğini, `/readyz` yanıtını, ana sayfanın canonical adresini, robots ve sitemap'i doğrula. Search Console alan adını DNS ile doğruladıktan sonra sitemap gönder.
+5. Apple üyeliği etkinleşince gerçek takımda com.soleradar.app için Apple ile Giriş ve Push Notifications yeteneklerini, dağıtım imzalarını ve APNs anahtarını tamamla. App Store Connect kaydına gerçek destek, gizlilik ve hesap silme adreslerini gir. Firebase Apple sağlayıcı ayarlarını tamamla.
+6. Mobil dizinde `npx eas-cli build -p ios --profile production` ile dağıtım derlemesi oluştur. Tamamlanan derlemenin kimliğiyle `npx eas-cli submit -p ios --id DERLEME-KIMLIGI` çalıştır. TestFlight’ta fiziksel iPhone’da giriş, numara/model seçimi, favori, alarm bildirimi, silme ve mağaza bağlantısı testinden sonra mağaza incelemesine gönder.
+
+Fiyat sıralaması ürünün seçili numaradaki satış fiyatını kullanır. Kargo mağazada hesaplanır.
