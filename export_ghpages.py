@@ -58,6 +58,7 @@ def main():
     (OUT / 'vendor').mkdir(exist_ok=True)
     shutil.copytree(ROOT/'web/vendor/vision', OUT/'vendor/vision', dirs_exist_ok=True)
     assets = ['orcinal.svg', 'orcinal-account.js', 'orcinal-firebase.json', 'radar.svg', 'social-card.png', 'fonts.css', 'LENIS-LICENSE.txt']
+    assets += [p.name for p in (ROOT / 'web/vendor').glob('rehber-*.png')]
     assets += [p.name for pattern in ('*.ttf', '*.woff2', '*-OFL.txt') for p in (ROOT / 'web/vendor').glob(pattern)]
     for name in assets:
         shutil.copy2(ROOT / 'web/vendor' / name, OUT / 'vendor' / name)

@@ -5,6 +5,8 @@
     "description": "Model kodu, renk, beden ve son kontrol tarihi: iki ayakkabı teklifini karşılaştırmadan önce kontrol etmen gerekenler.",
     "date": "2026-11-06",
     "category": "Alışveriş rehberi",
+    "updated": "2026-11-08T16:02:55+03:00",
+    "imageAlt": "İki teklifi karşılaştır. Model ve renk kodu: İki mağazada da aynı mı? Ayak numarası: Seçtiğin beden stokta mı? Son fiyat: Kargo dahil toplam kaç TL?",
     "intro": "İki teklifin gerçekten karşılaştırılabilir olması için modelin, rengin ve seçtiğin bedenin aynı olması gerekir. Arama sonucundaki en düşük fiyat, senin bedenindeki fiyat olmayabilir. Orcinal'da önce bedenini seç, sonra teklifler arasındaki farkı incele.",
     "sections": [
       {"title": "Model adı tek başına yeterli değil", "text": "Bir model ailesinin adı birçok renk ve sürümde kullanılabilir. Ürün kodunu mağazanın ürün sayfasında kontrol et. Kodun yalnızca model ailesini gösteren kısmı aynıysa renk eşleşmesi hâlâ belirsiz olabilir. Orcinal tanıdığı tam ürün kodlarını eşleştirir; kodu kesinleştiremediği kayıtları ayrı tutar. Bu yüzden aynı ayakkabıyı bazen iki ayrı sonuçta görebilirsin. Belirsiz kayıtları birleştirerek yanıltıcı bir fiyat farkı üretmek yerine bu ayrımı koruyoruz."},
@@ -20,6 +22,8 @@
     "description": "Stok, ölçü sistemi ve bedene özel fiyat arasındaki farkı öğren. Beden filtresinin hangi teklifleri gösterdiğini incele.",
     "date": "2026-11-06",
     "category": "Beden ve stok",
+    "updated": "2026-11-08T16:02:55+03:00",
+    "imageAlt": "Bedenini kontrol et. Ölç: Ayak uzunluğunu ölç. Eşleştir: Markanın beden tablosuna bak. Karşılaştır: Stoktaki numaranın fiyatını seç.",
     "intro": "Orcinal'ın beden filtresi mağazanın verdiği beden etiketini kullanır. Bir mağazanın 42 etiketi ile başka bir ölçü sistemindeki 42 etiketinin aynı kalıp olduğunu varsaymaz. Beden filtresi stok ve fiyat bulmayı kolaylaştırır; ayağına uygunluğu garanti etmez.",
     "sections": [
       {"title": "Mağazanın ölçü tablosunu kullan", "text": "Ürün sayfasında bedenin EU, US veya UK olarak mı belirtildiğine bak. Markanın ilgili ürün grubu için yayımladığı ölçü tablosunu kontrol et. Kadın, erkek ve çocuk ürünlerinde aynı rakamı görmek tek başına eşdeğer ölçü anlamına gelmez. Biz mağazanın beden yazımını koruyor, ölçü sistemleri arasında tahmini dönüşüm yapmıyoruz."},
@@ -35,6 +39,8 @@
     "description": "9060 tekliflerini renk, ürün kodu ve beden üzerinden karşılaştır. Vitrindeki görsel ile mağaza teklifinin aynı ürün olup olmadığını kontrol et.",
     "date": "2026-11-06",
     "category": "Model rehberi",
+    "updated": "2026-11-08T16:02:55+03:00",
+    "imageAlt": "9060 teklifini kontrol et. Seri: Ürün adında 9060 geçiyor mu? Renk: Ürün kodları birebir aynı mı? Stok: Aynı EU numarası mevcut mu?",
     "intro": "New Balance 9060 bir model ailesidir. Fiyat karşılaştırmasında yalnızca 9060 adına bakmak yeterli olmaz: renk, tam ürün kodu ve beden de eşleşmelidir. Ana sayfamızdaki Grey Jet Black görseli bir vitrin seçimidir; bu rengin en ucuz veya en çok satan seçenek olduğu iddiası değildir.",
     "sections": [
       {"title": "Aramaya 9060 ile başla", "text": "Arama kutusuna 9060 yazıp sonuçları incele. Bir ürünün rengini beğendiğinde kodunu aç ve diğer tekliflerde de aynı kodu ara. Fotoğraftaki tonlar çekim ışığı ve ekran ayarlarına göre farklı görünebilir; karşılaştırmayı yalnızca görsel benzerliğe dayandırma. Ürün adı ve kodu uyuşmuyorsa satın almadan önce mağazadan doğrulama iste."},

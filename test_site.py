@@ -84,6 +84,10 @@ class SiteTests(unittest.TestCase):
             self.assertEqual(blog['@type'], 'BlogPosting')
             self.assertEqual(blog['mainEntityOfPage'], 'https://example.test/blog/' + article['slug'] + '/')
             self.assertEqual(blog['datePublished'], article['date'])
+            image = '/vendor/rehber-' + article['slug'] + '.png'
+            self.assertEqual(blog['image'], 'https://example.test' + image)
+            self.assertIn('src="' + image + '"', html)
+            self.assertTrue((pages.ROOT / 'web' / image.lstrip('/')).is_file())
             self.assertIn(article['sections'][0]['text'], html)
             self.assertIn('rel="canonical"', html)
             self.assertIn("'sha256-", r['headers']['Content-Security-Policy'])

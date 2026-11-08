@@ -93,7 +93,9 @@ def metadata(title, description, path, schema=None, index=True):
     kind = 'article' if schema and schema.get('@type') in ('Article', 'BlogPosting') else 'website'
     result += f'<meta property="og:title" content="{escape(title)}"><meta property="og:description" content="{escape(description)}"><meta property="og:type" content="{kind}"><meta property="og:site_name" content="Orcinal"><meta property="og:locale" content="tr_TR"><meta name="twitter:card" content="{"summary_large_image" if sharing_base else "summary"}">'
     if sharing_base:
-        result += f'<meta property="og:image" content="{sharing_base}/vendor/social-card.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Orcinal — Aradığın çift. En iyi fiyatıyla."><meta name="twitter:image" content="{sharing_base}/vendor/social-card.png">'
+        image = schema['image'] if kind == 'article' and schema.get('image') else sharing_base + '/vendor/social-card.png'
+        width, height = (1280, 720) if kind == 'article' and schema.get('image') else (1200, 630)
+        result += f'<meta property="og:image" content="{escape(image)}"><meta property="og:image:width" content="{width}"><meta property="og:image:height" content="{height}"><meta property="og:image:alt" content="{escape(title)}"><meta name="twitter:image" content="{escape(image)}">'
     if schema:
         result += '<script type="application/ld+json">' + json.dumps(schema, ensure_ascii=False).replace('<', '\\u003c') + '</script>'
     return result
@@ -142,12 +144,13 @@ def resolve(path, query=''):
     article = next((a for a in ARTICLES if path == '/blog/' + a['slug'] + '/'), None)
     if article:
         a = article
-        body = f'<article class="prose"><a href="/blog/">← Tüm rehberler</a><p class="eyebrow">{escape(a["category"])}</p><h1>{escape(a["title"])}</h1><p class="byline"><a href="/hakkimizda/">Orcinal</a> · <time datetime="{a["date"]}">{a["date"]}</time></p><p class="lead">{escape(a["intro"])}</p>'
+        image_path = f'/vendor/rehber-{a["slug"]}.png'
+        body = f'<article class="prose"><a href="/blog/">← Tüm rehberler</a><p class="eyebrow">{escape(a["category"])}</p><h1>{escape(a["title"])}</h1><p class="byline"><a href="/hakkimizda/">Orcinal</a> · <time datetime="{a["date"]}">{a["date"]}</time> · Güncelleme <time datetime="{a["updated"]}">{stamp(a["updated"])}</time></p><p class="lead">{escape(a["intro"])}</p><img class="guide-image" src="{image_path}" alt="{escape(a["imageAlt"])}" width="1280" height="720">'
         body += ''.join(f'<section><h2>{escape(s["title"])}</h2><p>{escape(s["text"])}</p></section>' for s in a['sections'])
         body += '<h2>İlgili sayfalar</h2><ul>' + ''.join(f'<li><a href="{escape(l["url"])}">{escape(l["label"])}</a></li>' for l in a['links']) + '</ul></article>'
         org = {'@type': 'Organization', 'name': 'Orcinal', 'url': public_base() + '/hakkimizda/'}
         schema = {'@context': 'https://schema.org', '@type': 'BlogPosting', 'headline': a['title'],
-                  'description': a['description'], 'datePublished': a['date'], 'articleSection': a['category'],
+                  'description': a['description'], 'datePublished': a['date'], 'dateModified': a['updated'], 'articleSection': a['category'], 'image': public_base() + image_path,
                   'inLanguage': 'tr-TR', 'mainEntityOfPage': public_base() + path, 'author': org, 'publisher': org}
         return 200, page(a['title'], a['description'], path, body, schema), HTML
     if path in ('/yontem/', '/hakkimizda/', '/gizlilik/'):

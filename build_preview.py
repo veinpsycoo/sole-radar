@@ -31,6 +31,7 @@ def build(production_origin=None):
         shutil.copy2(ROOT / 'web' / name, destination / 'public' / name)
     shutil.copytree(ROOT/'web/vendor/vision', destination/'public/vendor/vision', dirs_exist_ok=True)
     assets = ['orcinal.svg', 'orcinal-account.js', 'orcinal-firebase.json', 'radar.svg', 'social-card.png', 'fonts.css', 'gsap.min.js', 'ScrollTrigger.min.js', 'lenis.min.js', 'lenis.css', 'LENIS-LICENSE.txt']
+    assets += [p.name for p in (ROOT / 'web/vendor').glob('rehber-*.png')]
     assets += [p.name for p in (ROOT / 'web/vendor').glob('*-OFL.txt')]
     assets += [p.name for p in (ROOT / 'web/vendor').glob('*.woff2')]
     assets += [p.name for p in (ROOT / 'web/vendor').glob('*.ttf')]
