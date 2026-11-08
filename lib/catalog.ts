@@ -48,6 +48,22 @@ export function offersFor(p: Product, data: Catalog, sizes: string[] = [], now =
     return variants.length ? [{...o, variants, price: Math.min(...variants.map(v => v.price))}] : [];
   }).sort((a,b) => a.price - b.price);
 }
+export function mergeCatalog(current: Catalog, incoming: Catalog, now: number): Catalog {
+  if (!current.products.length) return incoming;
+  const previous = new Map(current.products.map(p => [p.id, p]));
+  return {...incoming, products: incoming.products.map(product => {
+    const old = previous.get(product.id);
+    if (!old) return product;
+    const offers = product.offers.map(offer => {
+      const prior = old.offers.find(o => o.sourceId === offer.sourceId && o.url === offer.url);
+      if (!prior) return offer;
+      const at = Date.parse(prior.checkedAt);
+      return at > Date.parse(offer.checkedAt) && at <= now + 300000 && now - at < 86400000
+        ? {...offer, checkedAt: prior.checkedAt, variants: prior.variants} : offer;
+    });
+    return {...product, offers};
+  })};
+}
 export function search(data: Catalog, query: string, brand: string, sizes: string[], now = Date.now()): Result[] {
   const selected = [...new Set(sizes.map(shoeSize).filter(Boolean))].slice(0,3);
   if (!selected.length) return [];

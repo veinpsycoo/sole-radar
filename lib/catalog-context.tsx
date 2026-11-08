@@ -1,6 +1,8 @@
 import {createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode} from 'react';
 import {AppState} from 'react-native';
-import {emptyCatalog, parseCatalog, type Catalog, type Offer, type Variant} from './catalog';
+import {emptyCatalog, parseCatalog, mergeCatalog, type Catalog, type Offer, type Variant} from './catalog';
+
+import {catalogEndpoint,statusEndpoint,quoteOrigin} from './radar';
 
 type Target={id:string;sourceId:string;url:string;index:number};
 const Context = createContext({verify:(_targets:Target[])=>Promise.resolve(),data: emptyCatalog, loading: false, error: '', now: Date.now(), refresh: () => {}});
@@ -9,11 +11,12 @@ export function CatalogProvider({children}: {children: ReactNode}) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [now, setNow] = useState(Date.now);
+  const revision = useRef<string|null>(null);
   const request = useRef<AbortController | null>(null);
   const verify=useCallback(async(targets:Target[])=>{
     await Promise.all(targets.map(async t=>{
       try{
-        const r=await fetch('https://sole-radar-preview.vercel.app/api/teklif/'+t.id+'/'+t.index,{signal:AbortSignal.timeout(9000)});
+        const r=await fetch(quoteOrigin+'/api/teklif/'+t.id+'/'+t.index,{signal:AbortSignal.timeout(9000)});
         if(!r.ok)return;
         const q=await r.json() as Offer&{id:string};
         const at=Date.parse(q.checkedAt);
@@ -26,11 +29,8 @@ export function CatalogProvider({children}: {children: ReactNode}) {
     }));
   },[]);
   const refresh = useCallback(async () => {
-    const base = process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, '');
-    const endpoint = process.env.EXPO_PUBLIC_CATALOG_URL || (base ? base + '/api/catalog' : '');
-    if (!endpoint) {setError('Sunucu bağlantısı henüz yapılandırılmadı.'); return;}
     try {
-      const url = new URL(endpoint);
+      const url = new URL(catalogEndpoint);
       if (url.protocol !== 'https:' && !(__DEV__ && url.protocol === 'http:')) throw new Error();
     } catch {setError('Sunucu adresi geçersiz.'); return;}
     request.current?.abort();
@@ -38,10 +38,15 @@ export function CatalogProvider({children}: {children: ReactNode}) {
     const timeout = setTimeout(() => controller.abort(), 20000);
     setLoading(true); setError('');
     try {
-      const response = await fetch(endpoint, {signal: controller.signal});
+      const response = await fetch(catalogEndpoint, {signal: controller.signal});
       if (!response.ok) throw new Error();
       const parsed = parseCatalog(await response.json());
-      if (request.current === controller) {setData(parsed); setNow(Date.now());}
+      if (request.current === controller) {
+        const at=Date.now();
+        revision.current=parsed.generatedAt;
+        setData(current=>mergeCatalog(current,parsed,at));
+        setNow(at);
+      }
     } catch {
       if (request.current === controller) setError('Katalog alınamadı. Bağlantını kontrol edip tekrar dene.');
     } finally {
@@ -53,15 +58,11 @@ export function CatalogProvider({children}: {children: ReactNode}) {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- Mount starts external network synchronization, including its loading state.
     refresh();
     const timer = setInterval(() => setNow(Date.now()), 30000);
-    let lastRevision='';
     const poll=setInterval(async()=>{
       if(AppState.currentState!=='active'||request.current)return;
       try{
-        const url=process.env.EXPO_PUBLIC_CATALOG_URL;
-        const status=url?.endsWith('/api/catalog.json')?url.replace(/catalog\.json$/,'status.json'):process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/,'')+'/api/status';
-        if(!status||!status.startsWith('https://'))return;
-        const res=await fetch(status,{signal:AbortSignal.timeout(8000)});if(!res.ok)return;
-        const state=await res.json();if(state.generatedAt&&state.generatedAt!==lastRevision){lastRevision=state.generatedAt;refresh();}
+        const res=await fetch(statusEndpoint,{signal:AbortSignal.timeout(8000)});if(!res.ok)return;
+        const state=await res.json();if(state.generatedAt&&state.generatedAt!==revision.current)refresh();
       }catch{/* Retry on the next foreground poll. */}
     },60000);
     const state = AppState.addEventListener('change', value => {if(value === 'active') refresh();});

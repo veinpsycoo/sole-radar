@@ -1,3 +1,4 @@
+import {site} from '@/lib/radar';
 import {isRunningInExpoGo} from 'expo';
 import {Link, useLocalSearchParams, router} from 'expo-router';
 import {useEffect, useRef, useState} from 'react';
@@ -8,7 +9,7 @@ import {auth,appleLogin,googleLogin,profile,saveProfile,favorite,validId,removeA
 import {useCatalog} from '@/lib/catalog-context';
 import {styles as s} from '@/lib/styles';
 
-const portal='https://veinpsycoo.github.io/sole-radar/hesabim/';
+const portal=site+'/hesabim/';
 const sizes=Array.from({length:16},(_,i)=>i+35).flatMap(n=>(n===50?['']:['',' ⅓','.5',' ⅔']).map(suffix=>n+suffix));
 function Button({label,onPress,disabled=false}:{label:string;onPress:()=>void;disabled?:boolean}) {
   return <Pressable accessibilityRole="button" disabled={disabled} accessibilityState={{disabled}} onPress={onPress} style={[s.button,disabled&&{opacity:.5}]}><Text style={s.selectedText}>{label}</Text></Pressable>;

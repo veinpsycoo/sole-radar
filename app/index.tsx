@@ -8,8 +8,18 @@ import {money, safeUrl, search, shoeSize, offersFor} from '@/lib/catalog';
 import {styles as s} from '@/lib/styles';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {board,site,type Shipping} from '@/lib/radar';
-type Saved={sizes:string[];brand:string;query:string;total:boolean;leader?:{key:string;price:number;sizes:string[]}};
+import {board,site} from '@/lib/radar';
+type Saved={sizes:string[];brand:string;query:string;leader?:{key:string;price:number;sizes:string[]}};
+function suggestModels(query:string, results:{name:string}[]){
+    if(query.trim().length<2)return [];
+    const names=new Set<string>();
+    for(const p of results){
+      if(p.name===query)return [];
+      names.add(p.name);
+      if(names.size===5)break;
+    }
+    return [...names];
+}
 export default function Home() {
   const {numaralar}=useLocalSearchParams<{numaralar?:string}>();
   return <Ranking key={numaralar||''} initialSizes={typeof numaralar==='string'?[...new Set(numaralar.split('|').map(shoeSize).filter(Boolean))].slice(0,3):[]}/>;
@@ -18,14 +28,34 @@ function Ranking({initialSizes}:{initialSizes:string[]}) {
   const {data, loading, error, now, refresh,verify} = useCatalog();
   const [query,setQuery] = useState(''), [brand,setBrand] = useState('');
   const [sizes,setSizes] = useState<string[]>(initialSizes), [sizesOpen,setSizesOpen] = useState(false);
-  const [saved,setSaved]=useState<Saved[]>([]),[total,setTotal]=useState(false),[shipping,setShipping]=useState<Shipping[]>([]),[note,setNote]=useState('');
-  useEffect(()=>{let mounted=true;AsyncStorage.getItem('radar-rankings').then(raw=>{if(raw&&mounted){const rows=JSON.parse(raw);if(Array.isArray(rows))setSaved(rows.filter(x=>Array.isArray(x.sizes)&&x.sizes.every((v:unknown)=>typeof v==='string'&&shoeSize(v))&&typeof x.query==='string'&&typeof x.brand==='string').slice(0,12));}}).catch(()=>{});fetch(site+'/radar/shipping.json').then(r=>r.json()).then(rows=>{if(mounted&&Array.isArray(rows))setShipping(rows);}).catch(()=>{});return ()=>{mounted=false;};},[]);
+  const [saved,setSaved]=useState<Saved[]>([]),[note,setNote]=useState('');
+  useEffect(()=>{
+    let mounted=true;
+    AsyncStorage.getItem('radar-rankings').then(raw=>{
+      if(!raw||!mounted)return;
+      const rows=JSON.parse(raw);
+      if(!Array.isArray(rows))return;
+      const restored:Saved[]=[];
+      for(const row of rows){
+        if(!row||typeof row.brand!=='string'||typeof row.query!=='string'||!Array.isArray(row.sizes)||
+           !row.sizes.length||row.sizes.length>3||!row.sizes.every((v:unknown)=>typeof v==='string'&&shoeSize(v)===v))continue;
+        if(restored.some(x=>x.brand===row.brand&&x.query===row.query&&String(x.sizes)===String(row.sizes)))continue;
+        const leader=row.total?undefined:row.leader;
+        restored.push({sizes:row.sizes,brand:row.brand,query:row.query,leader:leader&&typeof leader.key==='string'&&Number.isSafeInteger(leader.price)&&Array.isArray(leader.sizes)?leader:undefined});
+        if(restored.length===12)break;
+      }
+      setSaved(restored);
+    }).catch(()=>{});
+    return ()=>{mounted=false;};
+  },[]);
   async function save(rows:Saved[]){try{await AsyncStorage.setItem('radar-rankings',JSON.stringify(rows));setSaved(rows);setNote('Bu cihazda kaydedildi.');}catch{setNote('Seçim kaydedilemedi.');}}
 
   const brands = useMemo(() => [...new Set(data.products.filter(p=>offersFor(p,data,sizes,now).length).map(p=>p.brand))].sort(), [data,sizes,now]);
   const choices = useMemo(() => [...new Set(data.products.flatMap(p=>offersFor(p,data,[],now).flatMap(o=>o.variants.map(v=>shoeSize(v.size)))).filter(Boolean))].sort((a,b)=>Number(a.replace(' ⅓','.333').replace(' ⅔','.667'))-Number(b.replace(' ⅓','.333').replace(' ⅔','.667'))), [data,now]);
-  const results = useMemo(() => search(data,query,brand,sizes,now), [data,query,brand,sizes,now]);
-  const rows=useMemo(()=>board(results,shipping,total,now),[results,shipping,total,now]);
+  const activeBrand=brands.includes(brand)?brand:'';
+  const results = useMemo(() => search(data,query,activeBrand,sizes,now), [data,query,activeBrand,sizes,now]);
+  const models=suggestModels(query,results);
+  const rows=useMemo(()=>board(results),[results]);
   const targets=useMemo(()=>rows.slice(0,3).flatMap(r=>{const p=data.products.find(p=>p.id===r.p.id),index=p?.offers.findIndex(o=>o.url===r.o.url&&o.sourceId===r.o.sourceId)??-1;return index<0?[]:[{id:r.p.id,url:r.o.url,sourceId:r.o.sourceId,index}];}),[rows,data]);
   const due=useRef(new Map<string,number>());
   useEffect(()=>{
@@ -33,12 +63,11 @@ function Ranking({initialSizes}:{initialSizes:string[]}) {
     check();const clock=setInterval(check,15000);return ()=>clearInterval(clock);
   },[targets,verify]);
   const first=rows[0];
-  const choice={sizes,brand,query,total,leader:first?{key:first.key,price:first.price,sizes:first.sizes}:undefined};
-  const same=(x:Saved)=>x.brand===brand&&x.query===query&&x.total===total&&String(x.sizes)===String(sizes);
+  const choice={sizes,brand:activeBrand,query,leader:first?{key:first.key,price:first.price,sizes:first.sizes}:undefined};
+  const same=(x:Saved)=>x.brand===activeBrand&&x.query===query&&String(x.sizes)===String(sizes);
   const prior=saved.find(same)?.leader;
   return <>
     <Stack.Screen options={{headerLargeTitle:false,headerTitle:()=> <Image accessibilityLabel="Orcinal" resizeMode="contain" source={require('../assets/orcinal-wordmark.png')} style={{width:110,height:32}}/>,headerRight:()=> <Link href="/hesabim" style={[s.navLink,Platform.OS==='android'&&isRunningInExpoGo()&&{marginRight:38}]}>Hesabım</Link>}}/>
-    {Platform.OS === 'ios' && <Stack.SearchBar placeholder="Model, marka veya kod ara" onChangeText={e=>setQuery(e.nativeEvent.text)}/>}
     <FlatList data={rows} keyExtractor={r=>r.key} contentInsetAdjustmentBehavior="automatic" contentContainerStyle={s.list} keyboardShouldPersistTaps="handled" refreshing={loading} onRefresh={refresh} initialNumToRender={10} windowSize={5}
       ListHeaderComponent={<View>
         <Text style={s.eyebrow}>NUMARANI SEÇ / KARŞILAŞTIR</Text><Text style={s.hero}>Senin numaran.{"\n"}<Text style={s.muted}>En iyi fiyatıyla.</Text></Text>
@@ -48,12 +77,13 @@ function Ranking({initialSizes}:{initialSizes:string[]}) {
           const checked=sizes.includes(value), disabled=!checked&&sizes.length===3;
           return <Pressable key={value} accessibilityRole="checkbox" accessibilityLabel={`${value.replace('.',',')} numara`} accessibilityState={{checked,disabled}} aria-checked={checked} disabled={disabled} style={[s.chip,checked&&s.selected,disabled&&{opacity:0.4}]} onPress={()=>setSizes(current=>current.includes(value)?current.filter(v=>v!==value):current.length<3?[...current,value]:current)}><Text style={checked?s.selectedText:s.text}>{checked?'✓ ':''}{value.replace('.',',')}</Text></Pressable>;
         })}</View>}
-        {Platform.OS !== 'ios' && <TextInput style={s.input} value={query} onChangeText={setQuery} placeholder="Model, marka veya kod ara" placeholderTextColor="#9999a8" accessibilityLabel="Ayakkabı ara" autoCapitalize="none"/>}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.chips}><Pressable accessibilityRole="button" accessibilityState={{selected:!brand}} style={[s.chip,!brand&&s.selected]} onPress={()=>setBrand('')}><Text style={!brand?s.selectedText:s.text}>Tümü</Text></Pressable>{brands.map(b=><Pressable key={b} accessibilityRole="button" accessibilityState={{selected:brand===b}} style={[s.chip,brand===b&&s.selected]} onPress={()=>setBrand(b)}><Text style={brand===b?s.selectedText:s.text}>{b}</Text></Pressable>)}</ScrollView>
-        <Pressable accessibilityRole="checkbox" accessibilityState={{checked:total}} onPress={()=>setTotal(!total)}><Text style={s.text}>{total?'☑':'☐'} Kargo dahil sırala</Text></Pressable>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.chips}><Pressable accessibilityRole="button" accessibilityState={{selected:!activeBrand}} style={[s.chip,!activeBrand&&s.selected]} onPress={()=>setBrand('')}><Text style={!activeBrand?s.selectedText:s.text}>Tümü</Text></Pressable>{brands.map(b=><Pressable key={b} accessibilityRole="button" accessibilityState={{selected:activeBrand===b}} style={[s.chip,activeBrand===b&&s.selected]} onPress={()=>setBrand(b)}><Text style={activeBrand===b?s.selectedText:s.text}>{b}</Text></Pressable>)}</ScrollView>
+        <Text style={s.caption}>Model</Text>
+        <TextInput style={s.input} value={query} onChangeText={setQuery} placeholder="Model, marka veya kod ara" placeholderTextColor="#9999a8" accessibilityLabel="Model, marka veya ürün kodu ara" autoCapitalize="none" maxLength={100} clearButtonMode="while-editing"/>
+        {models.map(name=><Pressable key={name} accessibilityRole="button" accessibilityLabel={name+' modelini seç'} onPress={()=>setQuery(name)} style={s.chip}><Text numberOfLines={2} style={s.text}>{name}</Text></Pressable>)}
         <Pressable style={s.button} disabled={!sizes.length} onPress={()=>save([choice,...saved.filter(x=>!same(x))].slice(0,12))}><Text style={s.selectedText}>Sıralamamı kaydet</Text></Pressable>
-        {saved.map((x,i)=><View key={JSON.stringify(x)} style={s.variants}><Pressable onPress={()=>{setSizes(x.sizes);setBrand(x.brand);setQuery(x.query);setTotal(x.total);}}><Text style={s.navLink}>{[x.brand,x.query,x.sizes.join(' / '),x.total?'Kargo dahil':''].filter(Boolean).join(' · ')}</Text></Pressable><Pressable accessibilityLabel="Kaydı sil" onPress={()=>save(saved.filter((_,j)=>j!==i))}><Text style={s.caption}>Kaldır</Text></Pressable></View>)}
-        <Text style={s.caption}>{note}</Text>{prior&&first&&<Text style={s.caption}>{prior.key!==first.key?'Kaydından beri lider değişti.':prior.price>first.price&&first.sizes.some(s=>prior.sizes.includes(s))?'Kaydından beri aynı numarada liderin fiyatı düştü.':''}</Text>}<View style={s.variants}><Link href="/alarmlar" style={s.navLink}>Alarmlarım</Link><Link href="https://veinpsycoo.github.io/sole-radar/foto/" style={s.navLink}>Fotoğrafla model bul ↗</Link><Link href="https://veinpsycoo.github.io/sole-radar/takvim/" style={s.navLink}>Çıkış takvimi ↗</Link></View>
+        {saved.map((x,i)=><View key={JSON.stringify(x)} style={s.variants}><Pressable onPress={()=>{setSizes(x.sizes);setBrand(x.brand);setQuery(x.query);}}><Text style={s.navLink}>{[x.brand,x.query,x.sizes.join(' / ')].filter(Boolean).join(' · ')}</Text></Pressable><Pressable accessibilityLabel="Kaydı sil" onPress={()=>save(saved.filter((_,j)=>j!==i))}><Text style={s.caption}>Kaldır</Text></Pressable></View>)}
+        <Text style={s.caption}>{note}</Text>{prior&&first&&<Text style={s.caption}>{prior.key!==first.key?'Kaydından beri lider değişti.':prior.price>first.price&&first.sizes.some(s=>prior.sizes.includes(s))?'Kaydından beri aynı numarada liderin fiyatı düştü.':''}</Text>}<View style={s.variants}><Link href="/alarmlar" style={s.navLink}>Alarmlarım</Link><Link href={`${site}/foto/` as `https://${string}`} style={s.navLink}>Fotoğrafla model bul ↗</Link><Link href={`${site}/takvim/` as `https://${string}`} style={s.navLink}>Çıkış takvimi ↗</Link></View>
         {error ? <View accessibilityRole="alert" style={s.notice}><Text style={s.text}>{error}</Text><Pressable accessibilityRole="button" style={s.button} onPress={refresh}><Text style={s.selectedText}>Tekrar dene</Text></Pressable></View> : null}
         <Text style={s.sectionTitle}>{rows.length.toLocaleString('tr-TR')} teklif</Text>
       </View>}
