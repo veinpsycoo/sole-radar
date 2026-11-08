@@ -62,17 +62,9 @@ function suggestions() {
   }
   $('model-options').innerHTML=[...names].sort((a,b)=>a.localeCompare(b,'tr')).map(n=>`<option value="${esc(n)}"></option>`).join('');
 }
-let shippingRules=[];
-function totalPrice(o) {
-  const rule=shippingRules.find(r=>r.sourceId===o.sourceId && Date.now()-Date.parse(r.checkedAt)<86400000 && Date.parse(r.checkedAt)<=Date.now()+300000);
-  if(!rule)return null;
-  if(o.price>=rule.threshold)return o.price;
-  return Number.isSafeInteger(rule.fee)?o.price+rule.fee:null;
-}
 function standings(products) {
-  const total=$('with-shipping').checked;
   return products.flatMap(p=>p.offers.flatMap(o=>{
-    const variants=o.variants.map(v=>({size:shoeSize(v.size),price:total?totalPrice({...o,price:v.price}):v.price})).filter(v=>Number.isSafeInteger(v.price));
+    const variants=o.variants.map(v=>({size:shoeSize(v.size),price:v.price})).filter(v=>Number.isSafeInteger(v.price));
     if(!variants.length)return [];
     const price=Math.min(...variants.map(v=>v.price));
     return [{p,o,key:rowKey(p,o),price,sizes:[...new Set(variants.filter(v=>v.price===price).map(v=>v.size))]}];
@@ -83,9 +75,8 @@ function rankRow(r,i,previous) {
   const sizes=r.sizes.map(v=>v.replace('.',',')).join(' · ');
   const change=delta?`<small class="movement">${delta>0?'▲':'▼'} ${Math.abs(delta)} sıra</small>`:'';
   const eligible=r.sizes;
-  const productMode=!$('with-shipping').checked;
   const comparisons=eligible.map(size=>{
-    const prices=p.offers.filter(other=>other.sourceId!==o.sourceId).flatMap(other=>other.variants.filter(v=>shoeSize(v.size)===size).map(v=>productMode?v.price:totalPrice({...other,price:v.price}))).filter(Number.isSafeInteger);
+    const prices=p.offers.filter(other=>other.sourceId!==o.sourceId).flatMap(other=>other.variants.filter(v=>shoeSize(v.size)===size).map(v=>v.price)).filter(Number.isSafeInteger);
     return {size,diff:prices.length?Math.min(...prices)-price:0};
   }).filter(c=>c.diff>0).sort((a,b)=>b.diff-a.diff);
   const saving=comparisons[0];
@@ -93,7 +84,7 @@ function rankRow(r,i,previous) {
   const cut=prior&&prior.price>price&&eligible.some(size=>prior.sizes?.includes(size))?`<small class="price-cut">↓ ${currency.format((prior.price-price)/100)}</small>`:'';
   const brand=p.brand || '', name=p.name.toLocaleUpperCase('tr').startsWith(brand.toLocaleUpperCase('tr')+' ')?p.name.slice(brand.length).trim():p.name;
   const current=verified.has(key), stamp=date(o.checkedAt);
-  return `<a class="timing-row pos-${Math.min(i+1,4)}" data-key="${esc(key)}" href="${esc(safe(o.url))}" target="_blank" rel="noopener noreferrer" aria-label="${i+1}. sıra · ${esc(p.name)} · ${currency.format(price/100)} · ${esc(sourceName(o.sourceId))} mağazasında aç"><span class="timing-thumb">${safe(p.image)?`<img src="${esc(safe(p.image))}" alt="" loading="lazy" width="92" height="82">`:''}<span class="position"><b>${String(i+1).padStart(2,'0')}</b></span></span><span class="timing-product"><small>${esc(brand)}${i===0?' <em>LİDER</em>':''}</small><strong>${esc(name)}</strong><span class="row-size">EU ${esc(sizes)}</span>${gap}</span><span class="timing-price"><b>${currency.format(price/100)}</b>${cut}${change}${$('with-shipping').checked?'<small>Kargo dahil</small>':''}</span><span class="row-foot"><span class="store-name">${esc(sourceName(o.sourceId))} <span aria-hidden="true">↗</span></span><time class="${current?'checked':'snapshot'}" datetime="${esc(o.checkedAt)}" title="${esc(stamp)} TSİ">${current?'Kontrol':'Tarama'} · ${esc(stamp)}</time></span></a>`;
+  return `<a class="timing-row pos-${Math.min(i+1,4)}" data-key="${esc(key)}" href="${esc(safe(o.url))}" target="_blank" rel="noopener noreferrer" aria-label="${i+1}. sıra · ${esc(p.name)} · ${currency.format(price/100)} · ${esc(sourceName(o.sourceId))} mağazasında aç"><span class="timing-thumb">${safe(p.image)?`<img src="${esc(safe(p.image))}" alt="" loading="lazy" width="92" height="82">`:''}<span class="position"><b>${String(i+1).padStart(2,'0')}</b></span></span><span class="timing-product"><small>${esc(brand)}${i===0?' <em>LİDER</em>':''}</small><strong>${esc(name)}</strong><span class="row-size">EU ${esc(sizes)}</span>${gap}</span><span class="timing-price"><b>${currency.format(price/100)}</b>${cut}${change}</span><span class="row-foot"><span class="store-name">${esc(sourceName(o.sourceId))} <span aria-hidden="true">↗</span></span><time class="${current?'checked':'snapshot'}" datetime="${esc(o.checkedAt)}" title="${esc(stamp)} TSİ">${current?'Kontrol':'Tarama'} · ${esc(stamp)}</time></span></a>`;
 }
 function draw(previous) {
   const grid=$('grid'), focusKey=document.activeElement?.closest?.('.timing-row')?.dataset.key;
@@ -107,7 +98,7 @@ function draw(previous) {
     }
   }
   grid.setAttribute('aria-busy','false');
-  $('result-count').textContent=selectedSizes().length?`${count(board.length)} teklif · ${$('with-shipping').checked?'Kargosu doğrulanan mağazalar':'En ucuzdan pahalıya'} · ${count(Math.min(shown,board.length))} gösteriliyor`:'Sonuçlar için numaranı seç';
+  $('result-count').textContent=selectedSizes().length?`${count(board.length)} teklif · En ucuzdan pahalıya · ${count(Math.min(shown,board.length))} gösteriliyor`:'Sonuçlar için numaranı seç';
   $('more').hidden=shown>=board.length;
 }
 function filter(updateURL=true, keep=false) {
@@ -121,7 +112,6 @@ function filter(updateURL=true, keep=false) {
     const params=new URLSearchParams();
     selectedSizes().forEach(size=>params.append('size',size));
     for(const id of ['brand','model'])if($(id).value)params.set(id,$(id).value);
-    if($('with-shipping').checked)params.set('kargo','1');
     history.replaceState(null,'',location.pathname+(params.size?'?'+params:'')+location.hash);
     $('save-status').textContent='';
   }
@@ -171,7 +161,10 @@ async function load() {
     for(const p of next.products)for(const o of p.offers){const newer=oldOffers.get(rowKey(p,o));if(newer && Date.parse(newer.checkedAt)>Date.parse(o.checkedAt))Object.assign(o,{variants:newer.variants,checkedAt:newer.checkedAt});else verified.delete(rowKey(p,o));}
     data=next;loadFilters();
     const params=new URLSearchParams(location.search);
-    $('with-shipping').checked=params.get('kargo')==='1';
+    if(params.has('kargo')) {
+      params.delete('kargo');
+      history.replaceState(null,'',location.pathname+(params.size?'?'+params:'')+location.hash);
+    }
     sizePicker.set($('size-picker'),[...params.getAll('size'),...params.getAll('size2')]);
     brandMenu();
     if(params.has('brand')) $('brand').value=params.get('brand');
@@ -185,7 +178,7 @@ async function load() {
     $('updated').textContent=data.generatedAt ? `Son tarama: ${date(data.generatedAt)} TSİ` : 'Henüz tarama yapılmadı.';
     const stale=data.products.length-active.length;
     $('notice').hidden=Boolean(active.length && !stale);
-    $('notice').textContent=stale ? `${count(stale)} modelin verisi eskidi veya kaynağı doğrulanamadı. Güncel teklifler için verileri yenile.` : !active.length ? 'Henüz güncel ürün yok. İlk kataloğu oluşturmak için Verileri yenile düğmesini kullan.' : '';
+    $('notice').textContent=stale ? `${count(stale)} modelin verisi eskidi veya kaynağı doğrulanamadı. Yalnız güncel teklifler sıralanır.` : !active.length ? 'Şu anda güncel teklif yok. Mağaza taraması tamamlandığında teklifler burada görünecek.' : '';
     filter(false,true);
     clearTimeout(expiryTimer);
     const expiries = active.flatMap(p => p.offers.filter(fresh).map(o => new Date(o.checkedAt).getTime() + 86400000 - Date.now()));
@@ -211,7 +204,7 @@ $('filters').addEventListener('submit',e=>e.preventDefault());
 let typing;
 $('filters').addEventListener('input',e=>{clearTimeout(typing);if(e.target.id==='brand')$('model').value='';const update=()=>{if(e.target.name==='size')brandMenu();suggestions();filter();recheck();};if(e.target.id==='model')typing=setTimeout(update,160);else update();});
 $('filters').addEventListener('reset',()=>setTimeout(()=>{brandMenu();suggestions();filter();},0));
-$('more').addEventListener('click',()=>{const previous=shown;shown+=36;draw();const next=$('grid').children[previous];next?.querySelector('a')?.focus();});
+$('more').addEventListener('click',()=>{const previous=shown;shown+=36;draw();const next=$('grid').children[previous];next?.querySelector('.timing-row')?.focus();});
 $('refresh').addEventListener('click',async()=>{
   $('refresh').disabled=true;
   try {const r=await fetch('/api/refresh',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});if(!r.ok && r.status!==409) throw new Error();polling=true;checkStatus();}
@@ -228,12 +221,18 @@ function savedMovement(){
   }catch{/* Device storage is optional. */}
 }
 function savedRankings(){
-  try {const items=JSON.parse(localStorage.getItem('sole-rankings')||'[]');return Array.isArray(items)?items.filter(x=>typeof x==='string'&&x.startsWith('?')&&x.length<600).slice(0,12):[];} catch{return [];}
+  try {const items=JSON.parse(localStorage.getItem('sole-rankings')||'[]');if(!Array.isArray(items))return [];
+    const queries=items.filter(x=>typeof x==='string'&&x.startsWith('?')&&x.length<600).map(x=>{
+      const params=new URLSearchParams(x);
+      params.delete('kargo');
+      return params.size?'?'+params:'';
+    });
+    return [...new Set(queries.filter(Boolean))].slice(0,12);} catch{return [];}
 }
 function drawSaved(){
   const list=$('saved-rankings');list.replaceChildren();
   for(const query of savedRankings()){
-    const q=new URLSearchParams(query), title=[q.get('brand'),q.get('model'),q.getAll('size').join(' / '),q.has('kargo')?'Kargo dahil':''].filter(Boolean).join(' · ');
+    const q=new URLSearchParams(query), title=[q.get('brand'),q.get('model'),q.getAll('size').join(' / ')].filter(Boolean).join(' · ');
     const link=document.createElement('a');link.href=location.pathname+query;link.textContent=title;
     const remove=document.createElement('button');remove.type='button';remove.textContent='×';remove.setAttribute('aria-label',title+' kaydını kaldır');
     remove.onclick=()=>writeSaved(savedRankings().filter(x=>x!==query));list.append(link,remove);
@@ -241,10 +240,8 @@ function drawSaved(){
 }
 function writeSaved(items){try{localStorage.setItem('sole-rankings',JSON.stringify(items));drawSaved();return true;}catch{$('save-status').textContent='Bu cihazda kayıt yapılamadı.';return false;}}
 $('save-ranking').onclick=()=>{if(!selectedSizes().length){$('save-status').textContent='Önce numaranı seç.';return;}filter();const q=location.search;try{const baselines=JSON.parse(localStorage.getItem('radar-leaders')||'{}');baselines[q]=snapshot(board[0]);localStorage.setItem('radar-leaders',JSON.stringify(Object.fromEntries(Object.entries(baselines).filter(([k])=>k===q||savedRankings().includes(k)))));}catch{}if(writeSaved([q,...savedRankings().filter(x=>x!==q)].slice(0,12)))$('save-status').textContent='Bu cihazda kaydedildi.';};
-$('with-shipping').onchange=()=>filter();
 async function startRadar(){
   drawSaved();
-  try{const res=await fetch(new URL('radar/shipping.json',document.baseURI),{signal:AbortSignal.timeout(4500)});if(res.ok)shippingRules=await res.json();}catch{/* No confirmed shipping terms. */}
   await load();checkStatus();
 }
 startRadar();
